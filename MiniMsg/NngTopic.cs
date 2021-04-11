@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace MiniMsg
 {
@@ -16,7 +18,7 @@ namespace MiniMsg
 
         public void Publish(string topic, byte[]msg)
         {
-           
+            PubMgr.Instance.Send(topic, msg);
             //
         }
     }

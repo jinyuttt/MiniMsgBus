@@ -12,17 +12,45 @@ namespace MiniMsg
         /// <summary>
         /// 本地节点地址
         /// </summary>
-        private static string LocalAddress = "";
-        private static ConcurrentDictionary<string, string> dicLocal = new ConcurrentDictionary<string, string>();
+        public static string LocalAddress = "";
+        private static readonly ConcurrentDictionary<string, string> dicLocal = new ConcurrentDictionary<string, string>();
+        private static readonly ConcurrentDictionary<string,object> localSub = new ConcurrentDictionary<string,object>();
 
-        public void Add(string topic)
+        public static void AddLocal(string topic,object ov)
+        {
+            localSub[topic] = ov;
+        }
+        public static object GetLocal(string topic)
+        {
+            object ov = null;
+            localSub.TryGetValue(topic,out ov);
+            return ov;
+                
+        }
+
+        /// <summary>
+        /// 添加订阅的地址
+        /// </summary>
+        /// <param name="topic"></param>
+        public static void Add(string topic)
         {
             dicLocal[topic] = null;
         }
+
+        /// <summary>
+        /// 是否存在
+        /// </summary>
+        /// <param name="topic"></param>
+        /// <returns></returns>
         public static  bool IsSub(string topic)
         {
             return dicLocal.ContainsKey(topic);
         }
+
+        /// <summary>
+        /// 获取本地IP
+        /// </summary>
+        /// <returns></returns>
         public static string GetLocalAddress()
         {
             if(string.IsNullOrWhiteSpace(LocalAddress))
