@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MiniMsg
+namespace MiniGrpc
 {
     public class Class1
     {

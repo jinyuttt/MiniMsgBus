@@ -1,0 +1,1 @@
+﻿Grpc.Tools.2.37.0\tools\windows_x64\protoc.exe -IgrpcDemo --csharp_out MiniGrpc   --grpc_out MiniGrpc --plugin=protoc-gen-grpc=packages\Grpc.Tools.2.37.0\tools\windows_x64\grpc_csharp_plugin.exe  MiniGrpc\grpchello.pb
