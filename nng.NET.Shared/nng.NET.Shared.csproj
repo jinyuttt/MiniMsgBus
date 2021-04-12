@@ -1,8 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <Import Project="../common.targets" />
+ 
 
   <PropertyGroup>
+	  <TargetFramework>net5.0</TargetFramework>
     <OutputPath>..\packer\bin\$(Configuration)\lib\</OutputPath>
     <!-- To enable code coverage -->
     <DebugType>full</DebugType>

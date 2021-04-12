@@ -2,6 +2,9 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Collections.Concurrent;
+using System.Net.NetworkInformation;
+using System.Collections.Generic;
+
 namespace MiniMsg
 {
     /// <summary>
@@ -13,6 +16,12 @@ namespace MiniMsg
         /// 本地节点地址
         /// </summary>
         public static string LocalAddress = "";
+
+        public static string LocalMask = "";
+
+        public static string LocalGateway = "";
+        private static List<NetWorkInfo> LocalAddressFamily=new List<NetWorkInfo>();
+       
         private static readonly ConcurrentDictionary<string, string> dicLocal = new ConcurrentDictionary<string, string>();
         private static readonly ConcurrentDictionary<string,object> localSub = new ConcurrentDictionary<string,object>();
 
@@ -75,6 +84,7 @@ namespace MiniMsg
                     {
                         string ip = "";
                         ip = IpEntry.AddressList[i].ToString();
+                        
                         return IpEntry.AddressList[i].ToString();
                     }
                 }
@@ -85,5 +95,46 @@ namespace MiniMsg
                 return ex.Message;
             }
         }
+        public static void GetNetworkInterface()
+        {
+            try
+            {
+
+                NetworkInterface[] adapters = NetworkInterface.GetAllNetworkInterfaces();
+                foreach (NetworkInterface ni in adapters)
+                {
+                    IPInterfaceProperties ipProperties = ni.GetIPProperties();
+
+                    foreach(var curIP in ipProperties.UnicastAddresses)
+                    {
+                        
+                        var v = new NetWorkInfo() { IPV4 = curIP.Address.ToString(), Mask = curIP.IPv4Mask.ToString(), GatewayAddress = ipProperties.GatewayAddresses[0].Address.ToString() };
+                        LocalAddressFamily.Add(v);
+                    }
+
+
+                }
+            }
+            catch (Exception ex)
+            {
+              
+            }
+        }
+
+    }
+
+
+    /// <summary>
+    /// 网卡信息
+    /// </summary>
+    public class NetWorkInfo
+    {
+        public string IPV4 { get; set; }
+
+        public string IPV6 { get; set; }
+
+        public string Mask { get; set; }
+
+        public string GatewayAddress { get; set; }
     }
 }

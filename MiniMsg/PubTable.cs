@@ -60,5 +60,10 @@ namespace MiniMsg
             topicPub.TryGetValue(topic,out lst);
             return lst;
         }
+
+        public  Dictionary<string,List<string>> GetPairs()
+        {
+            return new Dictionary<string, List<string>>(topicPub);
+        }
     }
 }

@@ -1,8 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <Import Project="../common.targets" />
 
+	
   <PropertyGroup>
+	  <TargetFramework>net5.0</TargetFramework>
     <OutputPath>runtimes\any\lib\</OutputPath>
     <DebugType>full</DebugType>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -17,9 +18,7 @@
     <NoWarn>$(NoWarn);NU5128</NoWarn>
   </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="system.memory" Version="4.5.4" />
-  </ItemGroup>
+  
 
   <!-- Must be run after build so output assembly is in runtimes/ -->
   <Target Name="Runtimes" AfterTargets="Build">

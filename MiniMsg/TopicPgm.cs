@@ -82,5 +82,16 @@ namespace MiniMsg
                 //}
             }
         }
+
+        public void PgmUpdate(string topic,string address)
+        {
+            using (var requester = new ZSocket(ZSocketType.XPUB))
+            {
+                
+                requester.Bind(Address);
+                requester.Send(new ZFrame(topic + "_" + address));
+               
+            }
+        }
     }
 }

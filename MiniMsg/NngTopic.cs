@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace MiniMsg
 {
@@ -9,17 +7,40 @@ namespace MiniMsg
     /// </summary>
     public class NngTopic
     {
-        Func<string, byte[]> OnCall = null;
-        public void Subscribe(string topic, Func<string, byte[]> call)
+        public event  Action<string, byte[]> OnCall = null;
+
+        /// <summary>
+        /// 订阅
+        /// </summary>
+        /// <param name="topic"></param>
+        public void Subscribe(string topic)
         {
-            OnCall = call;
+         
             SubMgr.Instance.SendSub(topic, this);
         }
 
+        /// <summary>
+        /// 发布
+        /// </summary>
+        /// <param name="topic"></param>
+        /// <param name="msg"></param>
         public void Publish(string topic, byte[]msg)
         {
             PubMgr.Instance.Send(topic, msg);
             //
+        }
+
+        /// <summary>
+        /// 内部数据回传
+        /// </summary>
+        /// <param name="topic"></param>
+        /// <param name="msg"></param>
+        internal void Add(string topic, byte[] msg)
+        {
+            if (OnCall != null)
+            {
+                OnCall(topic, msg);
+            }
         }
     }
 }

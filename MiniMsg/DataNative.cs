@@ -1,19 +1,56 @@
-﻿namespace MiniMsg
-{
+﻿using nng;
+using System.Collections.Concurrent;
+using System.IO;
+using System.Threading;
 
-    /// <summary>
-    /// 数据传输nng调用
-    /// </summary>
-    public  class DataNative
+namespace MiniMsg
+{
+    public class DataNative
     {
-        public void Send(byte[]bytes)
+        static IAPIFactory<INngMsg> factory = null;
+        private readonly BlockingCollection<byte[]> queue = new BlockingCollection<byte[]>();
+        private static IAPIFactory<INngMsg> GetFactory()
         {
-           
+            //  FactoryExt
+            if (factory == null)
+            {
+                var path = Path.GetDirectoryName(typeof(DataNative).Assembly.Location);
+                var ctx = new NngLoadContext(path);
+                factory = NngLoadContext.Init(ctx);
+            }
+            return factory;
+        }
+        public  void Send(string address,byte[]bytes)
+        {
+
+
+            using (var socket = GetFactory().BusOpen().ThenDial(address).Unwrap())
+            {
+                var msg = factory.CreateMessage();
+                msg.Append(bytes);
+                socket.SendMsg(msg);
+            }
         }
 
-        public void Rec()
+        internal byte[] GetData()
         {
+            return queue.Take();
+        }
 
+        public  void  Receive(string address)
+        {
+            Thread thread = new Thread(() => { 
+          
+            var socket = GetFactory().BusOpen().ThenListen(address).Unwrap();
+            while(true)
+            {
+               var msg= socket.RecvMsg().Unwrap().AsSpan();
+               var data= msg.ToArray();
+                queue.Add(data);
+            }
+            });
+            thread.IsBackground = true;
+            thread.Start();
         }
     }
 }

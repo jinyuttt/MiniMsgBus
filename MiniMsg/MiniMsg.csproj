@@ -5,12 +5,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="nng.NET" Version="1.4.0-rc0" />
     <PackageReference Include="ZeroMQ" Version="4.1.0.31" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\nng.NET.Shared\nng.NET.Shared.csproj" />
-    <ProjectReference Include="..\nng.NET\nng.NET.csproj" />
   </ItemGroup>
 
 </Project>

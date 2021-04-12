@@ -1,13 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace MiniMsg
 {
-  public  class PubMgr
+    public  class PubMgr
     {
         private static readonly Lazy<PubMgr> pub = new Lazy<PubMgr>(() => new PubMgr());
         public static PubMgr Instance
@@ -15,6 +12,11 @@ namespace MiniMsg
             get { return pub.Value; }
         }
 
+        /// <summary>
+        /// 发送数据
+        /// </summary>
+        /// <param name="topic"></param>
+        /// <param name="msg"></param>
         public void Send(string topic, byte[] msg)
         {
 
@@ -22,8 +24,12 @@ namespace MiniMsg
             var lst = SubTable.Instance.GetAddress(topic);
             if (lst != null)
             {
-                DataNative native = new DataNative();
-                native.Send(msg);
+                DataTransfer native = new DataTransfer();
+                foreach(var p in lst)
+                {
+                    native.Send(topic, msg,p);
+                }
+                
             }
             else
             {
@@ -48,8 +54,13 @@ namespace MiniMsg
                             lst = SubTable.Instance.GetAddress(topic);
                             if (lst != null)
                             {
-                                DataNative native = new DataNative();
-                                native.Send(msg);
+                                DataTransfer native = new DataTransfer();
+                               
+                                foreach (var p in lst)
+                                {
+                                    native.Send(topic,msg,p);
+                                }
+                              
                                 break;
                             }
                         }
