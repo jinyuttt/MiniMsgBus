@@ -24,8 +24,8 @@ namespace MiniMsg
         /// <summary>
         /// 添加主题和地址
         /// </summary>
-        /// <param name="topic"></param>
-        /// <param name="address"></param>
+        /// <param name="topic">主题</param>
+        /// <param name="address">发布地址</param>
         /// <returns></returns>
         public bool Add(string topic, string address)
         {
@@ -61,6 +61,10 @@ namespace MiniMsg
             return lst;
         }
 
+        /// <summary>
+        /// 主题节点
+        /// </summary>
+        /// <returns></returns>
         public  Dictionary<string,List<string>> GetPairs()
         {
             return new Dictionary<string, List<string>>(topicPub);

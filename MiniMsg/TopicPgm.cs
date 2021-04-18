@@ -11,7 +11,7 @@ namespace MiniMsg
     {
 
         private string epgmAddres = "";
-        public string LocalAddress { get; set; } = "127.0.0.1";
+        public string LocalAddress { get; set; } =LocalNode.LocalAddress;
 
         public string MultAddress { get; set; } = "239.192.1.1:5555";
 
@@ -31,67 +31,135 @@ namespace MiniMsg
         /// </summary>
         public void PgmSub()
         {
-            using (var requester = new ZSocket(ZSocketType.XSUB))
+            using (var requester = new ZSocket(ZSocketType.SUB))
             {
-                // Connect
-                requester.Connect(Address);
 
-              
-                   // string requestText = "Hello";
-                    //Console.Write("Sending {0}...", requestText);
+                if (LocalNode.LocalAddress.Contains("*"))
+                {
+                    //绑定本地所有IP
+                    foreach (var p in LocalNode.LocalAddressFamily)
+                    {
+                        string addr = "epgm://" + p.IPV4 + ";" + MultAddress;
+                        requester.Bind(addr);
+                        
+                    }
 
+                }
+                else
+                {
+                    string tmp = LocalNode.LocalAddress.Substring(6);
+                    int index = tmp.IndexOf(':');
+                    string addr = "epgm://" + tmp.Substring(0, index + 1) + ";" + MultAddress;
+                    requester.Bind(addr);
                    
-
-                    // Receive
+                }
+                while (true)
+                {
+                    requester.SubscribeAll();
                     using (ZFrame reply = requester.ReceiveFrame())
                     {
-                        //Console.WriteLine(" Received: {0} {1}!", requestText, reply.ReadString());
-                        if(ReceiveTopic!=null)
+                        Console.WriteLine(" Received: {1}!", reply.ReadString());
+                        if (ReceiveTopic != null)
                         {
                             ReceiveTopic(reply.ReadString());
                         }
                     }
-                
+                }
+
             }
+          
         }
 
         /// <summary>
-        /// 更新发布地址
+        /// 通知主题发布地址
         /// </summary>
         /// <param name="topic"></param>
         public void PgmPub(string topic)
         {
-            using (var requester = new ZSocket(ZSocketType.XPUB))
+            using (var requester = new ZSocket(ZSocketType.PUB))
             {
-                // Connect
-                requester.Bind(Address);
-                requester.Send(new ZFrame(topic+"_"+LocalAddress));
-               // for (int n = 0; n < 10; ++n)
-               // {
-               //  string requestText = "Hello";
-               // Console.Write("Sending {0}...", requestText);
+             
+                //如果绑定了所有网卡接收
+                if (LocalNode.LocalAddress.Contains("*"))
+                {
+                    //绑定本地所有IP
+                    foreach(var p in LocalNode.LocalAddressFamily)
+                    {
+                        try
+                        {
+                            //当前只考虑IPV4
+                            if (!string.IsNullOrEmpty(p.IPV4))
+                            {
+                                //采用epgm协议发送数据
+                                string addr = "epgm://" + p.IPV4 + ";" + MultAddress;
+                                requester.Bind(addr);
+                                using (var message = new ZMessage())
+                                {
 
-                // Send
-                //  requester.Send(new ZFrame(requestText));
+                                    message.Add(new ZFrame(string.Format("epgmpub {0}", "ss")));//这里定一个主题
+                                    message.Add(new ZFrame(string.Format(topic + "|" + p.IPV4)));//主题数据，只使用数据
+                                    requester.Send(message);
+                                }
+                               
+                            }
+                        }
+                        catch(Exception ex)
+                        {
+                            Console.WriteLine(ex);
+                        }
+                    }
+                   
+                }
+                else
+                {
+                    try
+                    {
+                        string tmp = LocalNode.LocalAddress.Substring(6);
+                        int index = tmp.IndexOf(':');
+                        string addr = "epgm://" + tmp.Substring(0, index + 1) + ";" + MultAddress;
+                        requester.Bind(addr);
+                        using (var message = new ZMessage())
+                        {
 
-                // Receive
-                // using (ZFrame reply = requester.ReceiveFrame())
-                // {
-                //     Console.WriteLine(" Received: {0} {1}!", requestText, reply.ReadString());
-                // }
-                //}
+                            message.Add(new ZFrame(string.Format("epgmpub {0}", "ss")));//这里定一个主题
+                            message.Add(new ZFrame(string.Format(topic + "|" + tmp)));//主题数据，只使用数据
+                            requester.Send(message);
+                        }
+                    
+                    }
+                    catch(Exception ex)
+                    {
+                        Console.WriteLine(ex);
+                    }
+                }
+               
+              
             }
         }
 
+        /// <summary>
+        /// 组播发送主题和地址
+        /// </summary>
+        /// <param name="topic">主题</param>
+        /// <param name="address">发布节点地址</param>
         public void PgmUpdate(string topic,string address)
         {
-            using (var requester = new ZSocket(ZSocketType.XPUB))
+            using (var requester = new ZSocket(ZSocketType.PUB))
             {
                 
                 requester.Bind(Address);
-                requester.Send(new ZFrame(topic + "_" + address));
-               
+                requester.Send(new ZFrame(topic + "|" + address));
+                using (var message = new ZMessage())
+                {
+
+                    message.Add(new ZFrame(string.Format("epgmpub {0}", "ss")));//这里定一个主题
+                    message.Add(new ZFrame(string.Format(topic + "|" + address)));//主题数据，只使用数据
+                    requester.Send(message);
+                }
+
             }
         }
+    
+       
     }
 }

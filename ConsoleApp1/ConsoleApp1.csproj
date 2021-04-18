@@ -1,15 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <OutputType>Exe</OutputType>
     <TargetFramework>net5.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="nng.NET" Version="1.4.0-rc0" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\..\..\clrzmq4-master\ZeroMQ.netcore.csproj" />
+    <ProjectReference Include="..\MiniMsg\MiniMsg.csproj" />
   </ItemGroup>
 
 </Project>
