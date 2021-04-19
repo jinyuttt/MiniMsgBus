@@ -6,7 +6,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\clrzmq4-master\ZeroMQ.netcore.csproj" />
     <ProjectReference Include="..\MiniMsg\MiniMsg.csproj" />
   </ItemGroup>
 

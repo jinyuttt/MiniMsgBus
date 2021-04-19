@@ -9,7 +9,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\clrzmq4-master\ZeroMQ.netcore.csproj" />
+    <ProjectReference Include="..\clrzmq4-master\ZeroMQ.netcore.csproj" />
   </ItemGroup>
 
 </Project>

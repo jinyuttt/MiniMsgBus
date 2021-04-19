@@ -9,7 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MiniGrpc", "MiniGrpc\MiniGr
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsoleApp1", "ConsoleApp1\ConsoleApp1.csproj", "{4577F5AE-6854-4B1B-8BC0-676D3CF9DF43}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZeroMQ.netcore", "..\..\clrzmq4-master\ZeroMQ.netcore.csproj", "{9D99511E-6C1C-465C-9ED6-9C1DFB7EB3C5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZeroMQ.netcore", "clrzmq4-master\ZeroMQ.netcore.csproj", "{C6E80151-518E-4AAE-B397-E7AC2CEBDE5C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -29,10 +29,10 @@ Global
 		{4577F5AE-6854-4B1B-8BC0-676D3CF9DF43}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4577F5AE-6854-4B1B-8BC0-676D3CF9DF43}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4577F5AE-6854-4B1B-8BC0-676D3CF9DF43}.Release|Any CPU.Build.0 = Release|Any CPU
-		{9D99511E-6C1C-465C-9ED6-9C1DFB7EB3C5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9D99511E-6C1C-465C-9ED6-9C1DFB7EB3C5}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9D99511E-6C1C-465C-9ED6-9C1DFB7EB3C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9D99511E-6C1C-465C-9ED6-9C1DFB7EB3C5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C6E80151-518E-4AAE-B397-E7AC2CEBDE5C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C6E80151-518E-4AAE-B397-E7AC2CEBDE5C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C6E80151-518E-4AAE-B397-E7AC2CEBDE5C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C6E80151-518E-4AAE-B397-E7AC2CEBDE5C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

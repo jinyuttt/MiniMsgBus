@@ -1,0 +1,32 @@
+version: "{build}"
+#platform: AnyCPU
+configuration: Release
+
+#image:
+#- Visual Studio 2017
+
+#cache:
+#- c:\Tools\vcpkg\installed
+
+init:
+- cmd: msbuild /version
+
+install:
+- cmd: vcpkg install zeromq:x64-windows
+#- cmd: vcpkg integrate install
+- cmd: mkdir C:\projects\clrzmq4\bin\Release\amd64
+- cmd: mklink /h C:\projects\clrzmq4\bin\Release\amd64\libzmq.dll c:\Tools\vcpkg\installed\x64-windows\bin\libzmq-mt-4_3_3.dll
+- cmd: echo "If the mklink command above fails to create a link, look into C:\Tools\vcpkg\installed\x64-windows\bin"
+- cmd: echo "there may be a new libzmq-mt-4_n_n.dll file, and do change this appveyor.yml accordingly:"
+- cmd: dir /s C:\Tools\vcpkg\installed\x64-windows\*zmq*
+
+- cmd: nuget restore clrzmq4.vs.sln
+
+build:
+  project: clrzmq4.vs.sln
+
+test_script:
+- cmd: .\bin\Release\ZGuideExamples.exe Version
+- cmd: .\bin\Release\ZGuideExamples.exe EAgain
+- cmd: .\bin\Release\ZGuideExamples.exe Espresso
+
