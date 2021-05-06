@@ -5,7 +5,7 @@ namespace MiniMsg
     /// <summary>
     /// 订阅发布接口
     /// </summary>
-    public class NngTopic
+    public class MiniMsgTopic
     {
         /// <summary>
         /// 订阅回调

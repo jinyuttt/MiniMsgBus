@@ -37,6 +37,10 @@ namespace ConsoleApp1
             //Console.Read();
             //Console.WriteLine("Hello World!");
         }
+
+
+        #region 通信测试
+
         static void Send()
         {
             while(true)
@@ -146,6 +150,24 @@ namespace ConsoleApp1
             }
         }
 
+        #endregion
 
+        public static void Sub()
+        {
+            MiniMsgTopic miniMsgTopic = new MiniMsgTopic();
+            miniMsgTopic.Subscribe("ssss");
+            miniMsgTopic.OnCall += MiniMsgTopic_OnCall;
+
+        }
+
+        public static void Pub()
+        {
+            MiniMsgTopic miniMsgTopic = new MiniMsgTopic();
+            miniMsgTopic.Publish("ssss", BitConverter.GetBytes(1111));
+        }
+        private static void MiniMsgTopic_OnCall(string arg1, byte[] arg2)
+        {
+           
+        }
     }
 }

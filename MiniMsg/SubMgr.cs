@@ -16,7 +16,7 @@ namespace MiniMsg
         /// <summary>
         /// 订阅者
         /// </summary>
-        private readonly ConcurrentDictionary<string, List<NngTopic>> dicSubObj = new ConcurrentDictionary<string, List<NngTopic>>();
+        private readonly ConcurrentDictionary<string, List<MinimsgTopic>> dicSubObj = new ConcurrentDictionary<string, List<MinimsgTopic>>();
 
         /// <summary>
         /// 接收的数据，包括订阅信息
@@ -91,7 +91,7 @@ namespace MiniMsg
                         //数据处理
                         Task.Run(() =>
                         {
-                            if (dicSubObj.TryGetValue(p.Topic, out List<NngTopic> lst))
+                            if (dicSubObj.TryGetValue(p.Topic, out List<MinimsgTopic> lst))
                             {
                                 int cout = lst.Count;
                                 for (int i = 0; i < cout; i++)
@@ -218,7 +218,7 @@ namespace MiniMsg
             if (ov != null)
             {
                 //本地已经订阅的主题发送订阅信息
-                this.SendSub(topic, ov as NngTopic);
+                this.SendSub(topic, ov as MinimsgTopic);
             }
 
         }
@@ -228,7 +228,7 @@ namespace MiniMsg
         /// </summary>
         /// <param name="topic">主题</param>
         /// <param name="sub">数据</param>
-        public void  SendSub(string topic, NngTopic sub)
+        public void  SendSub(string topic, MinimsgTopic sub)
         {
             var lst = PubTable.Instance.GetAddress(topic);
             if(lst==null)
@@ -265,7 +265,7 @@ namespace MiniMsg
 
             //保持本地订阅实例，用于数据回传
             //
-            if(dicSubObj.TryGetValue(topic,out List<NngTopic> lstTopic))
+            if(dicSubObj.TryGetValue(topic,out List<MinimsgTopic> lstTopic))
             {
                 lock(lstTopic)
                 {
@@ -294,7 +294,7 @@ namespace MiniMsg
                     }
                     else
                     {
-                        lstTopic = new List<NngTopic>();
+                        lstTopic = new List<MinimsgTopic>();
                         lstTopic.Add(sub);
                         dicSubObj[topic] = lstTopic;
                     }
