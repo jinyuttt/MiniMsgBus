@@ -31,6 +31,11 @@ namespace MiniMsg
         public static string LocalGateway = "";
 
         /// <summary>
+        /// 默认通信协议
+        /// </summary>
+        public static string Netprotocol = "nng";
+
+        /// <summary>
         /// 节点唯一标识
         /// </summary>
         public static readonly string GUID = Guid.NewGuid().ToString("N");

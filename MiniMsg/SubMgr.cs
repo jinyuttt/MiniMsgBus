@@ -120,7 +120,6 @@ namespace MiniMsg
             {
                 LocalNode.GetNetworkInterface();
                 LocalNode.LocalAddress = native.Receive("tcp://*:0");
-
             }
             else
             {

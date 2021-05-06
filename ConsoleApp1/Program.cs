@@ -13,13 +13,13 @@ namespace ConsoleApp1
         {
             Console.WriteLine(System.Environment.Is64BitProcess);
             Task.Run(() => {
-                PgmClient();
-                
+                //  PgmClient();
 
+                Rec();
             });
             Task.Run(() => {
                 // PgmServwr();
-               
+                Send();
             });
 
             Console.Read();

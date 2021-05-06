@@ -11,6 +11,14 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsoleApp1", "ConsoleApp1\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZeroMQ.netcore", "clrzmq4-master\ZeroMQ.netcore.csproj", "{C6E80151-518E-4AAE-B397-E7AC2CEBDE5C}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "INetTransfer", "INetTransfer\INetTransfer.csproj", "{81C834D0-D8F5-4E41-B83E-42757304A0E3}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Transfer", "Transfer", "{9FC2D2C5-537E-4049-9CE5-5371D77CF211}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NngTransferNative", "NngTransferNative\NngTransferNative.csproj", "{4101E333-074C-42F9-A4E9-D546F287CBAE}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UdtTransferNative", "UdtTransferNative\UdtTransferNative.csproj", "{69A7F05F-AA69-425E-A9E5-5726D93AF129}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,9 +41,26 @@ Global
 		{C6E80151-518E-4AAE-B397-E7AC2CEBDE5C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C6E80151-518E-4AAE-B397-E7AC2CEBDE5C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C6E80151-518E-4AAE-B397-E7AC2CEBDE5C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{81C834D0-D8F5-4E41-B83E-42757304A0E3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{81C834D0-D8F5-4E41-B83E-42757304A0E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{81C834D0-D8F5-4E41-B83E-42757304A0E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{81C834D0-D8F5-4E41-B83E-42757304A0E3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4101E333-074C-42F9-A4E9-D546F287CBAE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4101E333-074C-42F9-A4E9-D546F287CBAE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4101E333-074C-42F9-A4E9-D546F287CBAE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4101E333-074C-42F9-A4E9-D546F287CBAE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{69A7F05F-AA69-425E-A9E5-5726D93AF129}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{69A7F05F-AA69-425E-A9E5-5726D93AF129}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{69A7F05F-AA69-425E-A9E5-5726D93AF129}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{69A7F05F-AA69-425E-A9E5-5726D93AF129}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{81C834D0-D8F5-4E41-B83E-42757304A0E3} = {9FC2D2C5-537E-4049-9CE5-5371D77CF211}
+		{4101E333-074C-42F9-A4E9-D546F287CBAE} = {9FC2D2C5-537E-4049-9CE5-5371D77CF211}
+		{69A7F05F-AA69-425E-A9E5-5726D93AF129} = {9FC2D2C5-537E-4049-9CE5-5371D77CF211}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {640917F5-DCF6-414E-A4AE-8F2FE26DA285}

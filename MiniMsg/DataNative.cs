@@ -1,10 +1,8 @@
-﻿using nng;
-using nng.Native;
-using System;
-using System.Collections.Concurrent;
+﻿using INetTransfer;
 using System.IO;
-using System.Text;
-using System.Threading;
+using System;
+using System.Linq;
+using System.Runtime.Loader;
 
 namespace MiniMsg
 {
@@ -14,123 +12,222 @@ namespace MiniMsg
     /// </summary>
     public class DataNative
     {
-        static IAPIFactory<INngMsg> factory = null;
-        static  INngMsg nodeMsg = null;
-        private readonly BlockingCollection<byte[]> queue = new BlockingCollection<byte[]>();
+        static ISocketFactory Factory = null;
+        static string asmPath = null;
+        static MsgLoadContext loadContext = null;
+        public static object factoryObj = null;
+        // public Func<string, byte[], byte[]> MsgSend;
+        //public Func<string, string> MsgRecvice;
+        // public Func<byte[]> dataCall = null;
 
+        public  dynamic MsgSend;
+        public dynamic MsgRecvice;
+        public dynamic dataCall = null;
+        public dynamic  LisClose = null;
 
-        private static IAPIFactory<INngMsg> GetFactory()
+        private ITransfer transfer = null;
+
+        static DataNative()
         {
-            //  FactoryExt
-            if (factory == null)
-            {
-                var path = Path.GetDirectoryName(typeof(DataNative).Assembly.Location);
-                var ctx = new NngLoadContext(path);
-                factory = NngLoadContext.Init(ctx);
-            }
-            return factory;
+           
+            ITransfer.NodeGuid = LocalNode.GUID;
+            var path =Path.GetDirectoryName(typeof(DataNative).Assembly.Location);
+            loadContext = new MsgLoadContext(path);
+            asmPath = path;
+            LoadNativeFile();
         }
 
-        
-        public static string GetDialUrl(INngListener listener, string url)
+        public DataNative()
         {
-            if (url.EndsWith(":0", StringComparison.OrdinalIgnoreCase)
-            && (url.StartsWith("tcp", StringComparison.OrdinalIgnoreCase) || url.StartsWith("ws", StringComparison.OrdinalIgnoreCase))
-            )
+            //if(factoryObj!=null)
+            //{
+            //    var mth= factoryObj.GetType().GetField("MsgSend");
+            //    this.MsgSend = mth.GetValue(factoryObj);
+            //    mth = factoryObj.GetType().GetField("MsgRecvice");
+            //    this.MsgRecvice = mth.GetValue(factoryObj);
+            //    mth = factoryObj.GetType().GetField("dataCall");
+            //    this.dataCall = mth.GetValue(factoryObj);
+            //    mth = factoryObj.GetType().GetField("LisClose");
+            //    this.LisClose = mth.GetValue(factoryObj);
+            //}
+        }
+
+        private static void LoadFile()
+        {
+            string[] files = Directory.GetFiles(asmPath, "*.dll");
+            foreach(var f in files)
             {
-                var res = listener.GetOpt(nng.Native.Defines.NNG_OPT_LOCADDR, out nng_sockaddr addr);
-                if (res == 0)
+                try
                 {
-                    ushort port = 0;
-                    switch (addr.s_family)
+                   // var fs = File.OpenRead(f);
+                  //  var assm = loadContext.LoadFromStream(fs);
+                    var assm = MsgLoadContext.Default.LoadFromAssemblyPath(f);
+                    if (assm != null)
                     {
-                        case nng.Native.nng_sockaddr_family.NNG_AF_INET:
-                            port = (ushort)System.Net.IPAddress.NetworkToHostOrder((short)addr.s_in.sa_port);
-                            break;
-                        case nng.Native.nng_sockaddr_family.NNG_AF_INET6:
-                            port = (ushort)System.Net.IPAddress.NetworkToHostOrder((short)addr.s_in6.sa_port);
-                            break;
-                        default:
-                          
-                            break;
+                        try
+                        {
+                            var factory = assm.DefinedTypes.Where(X => X.IsClass && X.IsPublic && X.GetInterface("ISocketFactory") != null);
+                            foreach (var asm in factory)
+                            {
+                                var atts = asm.GetCustomAttributes(false);
+                                var ty = typeof(TransferModel);
+                                var ss = MsgLoadContext.Default;
+                                var fff = AssemblyLoadContext.All;
+                                foreach (var p in atts)
+                                {
+                                    if(p.GetType().Name== "TransferModel")
+                                    {
+                                       var v= p.GetType().GetProperty("Name").GetValue(p).ToString();
+                                        if (v == LocalNode.Netprotocol)
+                                        {
+                                             Factory =(ISocketFactory)asm.Assembly.CreateInstance(asm.FullName,false);
+                                            object obj =asm.Assembly.CreateInstance(asm.FullName, false);
+                                            if(obj!=null)
+                                            {
+                                                var fsAssembly = MsgLoadContext.Default.Assemblies.Where(X => X.ManifestModule.ScopeName == "INetTransfer.dll");
+                                                foreach(var cur in fsAssembly)
+                                                {
+                                                  var tys=  cur.DefinedTypes.Where(X => X.IsClass && X.Name == "MiniMsgProxy");
+                                                    foreach (var tt in tys)
+                                                    {
+                                                       var fobj= cur.CreateInstance(tt.FullName);
+                                                        var  fv= tt.GetField("Factory", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+                                                        fv.SetValue(fobj, obj);
+                                                        factoryObj = fobj;
+
+                                                    }
+                                                }
+                                            }
+                                          
+                                            break;
+                                        }
+                                    }
+                                    
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex);
+                        }
+                      //  fs.Close();
                     }
-                    url = url.Substring(0, url.Length - 1) + port;
+                }
+                catch(Exception ex)
+                {
+                    Console.WriteLine(ex);
                 }
             }
-            return url;
+        
         }
 
         /// <summary>
-        /// 回复节点标识
+        /// 加载库
         /// </summary>
-        /// <returns></returns>
-        public static INngMsg RepMsg()
+        private static void LoadNativeFile()
         {
-            if (nodeMsg == null)
+            string[] files = Directory.GetFiles(asmPath, "*.dll");
+            foreach (var f in files)
             {
-                 nodeMsg = factory.CreateMessage();
-                var bytes = UTF8Encoding.UTF8.GetBytes(LocalNode.GUID);
-                nodeMsg.Append(bytes);
+                try
+                {
+                    
+                    var assm = MsgLoadContext.Default.LoadFromAssemblyPath(f);
+                    if (assm != null)
+                    {
+                        try
+                        {
+                            var factory = assm.DefinedTypes.Where(X => X.IsClass && X.IsPublic && X.GetInterface("ISocketFactory") != null);
+                            foreach (var asm in factory)
+                            {
+                                var atts = asm.GetCustomAttributes(false);
+                             
+                              
+                                foreach (var p in atts)
+                                {
+                                    var trf = p as TransferModel;
 
+                                    if (trf != null)
+                                    {
+                                        if (trf.Name == LocalNode.Netprotocol)
+                                        {
+                                            Factory = (ISocketFactory)asm.Assembly.CreateInstance(asm.FullName, false);
+                                            break;
+                                        }
+                                    }
+                                    
+                                    
+
+                                }
+                            }
+                        }
+                        catch(BadImageFormatException ex)
+                        {
+                            continue;
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex);
+                        }
+                       
+                    }
+                }
+                catch (BadImageFormatException ex)
+                {
+                    continue;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex);
+                }
             }
-            return nodeMsg.Dup().Unwrap();//复制一次数据发送
+
         }
 
         /// <summary>
-        /// 发送数据
+        /// 发送
         /// </summary>
-        /// <param name="address">发送地址</param>
-        /// <param name="bytes">数据</param>
+        /// <param name="address"></param>
+        /// <param name="v"></param>
         /// <returns></returns>
-        public  byte[] Send(string address,byte[]bytes)
+        public byte[] Send(string address, byte[] v)
         {
-
-
-            using (var reqSocket = GetFactory().RequesterOpen().ThenDial(address).Unwrap())
-            {
-                reqSocket.SetOpt(nng.Native.Defines.NNG_OPT_SENDTIMEO, new nng_duration { TimeMs = 100 });
-                var msg = factory.CreateMessage();
-                msg.Append(bytes);
-                reqSocket.SendMsg(msg).Unwrap();
-                return reqSocket.RecvMsg().Unwrap().AsSpan().ToArray();
-            }
+            // return MsgSend(address, v);
+            return Factory.Create().Send(address, v);
         }
 
         /// <summary>
-        /// 获取接收的数据
+        /// 接收
+        /// </summary>
+        /// <param name="v"></param>
+        /// <returns></returns>
+        public string Receive(string v)
+        {
+            transfer = Factory.Create();
+            return transfer.Receive(v);
+          //  return MsgRecvice(v);
+        }
+
+        /// <summary>
+        /// 获取数据
         /// </summary>
         /// <returns></returns>
         public byte[] GetData()
         {
-            return queue.Take();
-        }
-
-
-        /// <summary>
-        /// 启动数据接收
-        /// </summary>
-        /// <param name="address">监听地址</param>
-        /// <returns>真实地址</returns>
-        public  string  Receive(string address)
-        {
-            var repSocket = GetFactory().ReplierOpen().ThenListenAs(out var listener, address).Unwrap();
-            var str = GetDialUrl(listener, address);
-            Thread thread = new Thread(() =>
+            if(transfer!=null)
             {
-                while (true)
-                {
-
-                    var msg = repSocket.RecvMsg().Unwrap();
-                    repSocket.SendMsg(RepMsg()).Unwrap();
-                    var bytes = msg.AsSpan().ToArray();
-                    queue.Add(bytes);//数据写入队列
-
-                }
-            });
-            thread.IsBackground = true;
-            thread.Name = "sub";
-            thread.Start();
-            return str;
+                return transfer.GetData();
+            }
+            return null;
+          //  return dataCall();
+        }
+        public void Close()
+        {
+            if (transfer != null)
+            {
+                 transfer.Close();
+            }
+            // LisClose();
         }
     }
 }

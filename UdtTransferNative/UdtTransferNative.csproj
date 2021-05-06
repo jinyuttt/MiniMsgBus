@@ -5,9 +5,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\clrzmq4-master\ZeroMQ.netcore.csproj" />
+    <PackageReference Include="IUdtSocket" Version="1.0.2" />
+    <PackageReference Include="UdtCSharp" Version="1.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\INetTransfer\INetTransfer.csproj" />
-    <ProjectReference Include="..\NngTransferNative\NngTransferNative.csproj" />
   </ItemGroup>
 
 </Project>

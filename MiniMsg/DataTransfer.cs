@@ -4,7 +4,7 @@ namespace MiniMsg
 {
 
     /// <summary>
-    /// 数据传输nng调用
+    /// 数据传输调用
     /// </summary>
     internal class DataTransfer
     {

@@ -5,9 +5,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\clrzmq4-master\ZeroMQ.netcore.csproj" />
+    <PackageReference Include="nng.NET" Version="1.4.0-rc0" />
+    <PackageReference Include="nng.NET.Shared" Version="1.4.0-rc0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\INetTransfer\INetTransfer.csproj" />
-    <ProjectReference Include="..\NngTransferNative\NngTransferNative.csproj" />
   </ItemGroup>
 
 </Project>
