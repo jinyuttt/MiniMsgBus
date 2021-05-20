@@ -8,17 +8,22 @@ namespace MiniMsg
     /// <summary>
     /// 节点信息
     /// </summary>
-    internal class LocalNode
+    public class LocalNode
     {
         /// <summary>
         /// 本地节点地址
         /// </summary>
-        public static string LocalAddress = "";
+        public static string LocalAddress = "*";
 
         /// <summary>
         /// 本地端口
         /// </summary>
         public static int LocalPort = 0;
+
+        /// <summary>
+        /// 网络地址
+        /// </summary>
+        public static string LocalNetAddress = "";
 
         /// <summary>
         /// 掩码
@@ -34,6 +39,8 @@ namespace MiniMsg
         /// 默认通信协议
         /// </summary>
         public static string Netprotocol = "nng";
+
+        public static string protocol = "tcp";
 
         /// <summary>
         /// 节点唯一标识
@@ -65,6 +72,7 @@ namespace MiniMsg
         /// <returns></returns>
         public static object GetLocal(string topic)
         {
+            Console.WriteLine("本地订阅主题个数:" + localSub.Count);
             object ov = null;
             localSub.TryGetValue(topic,out ov);
             return ov;

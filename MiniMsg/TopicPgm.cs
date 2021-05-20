@@ -1,5 +1,6 @@
 ﻿using System;
 using ZeroMQ;
+using System.Collections.Generic;
 using System.Collections.Concurrent;
 namespace MiniMsg
 {
@@ -15,6 +16,7 @@ namespace MiniMsg
 
         public string MultAddress { get; set; } = "239.192.1.1:5555";
 
+        public ConcurrentBag<string> lstBindAddress = new ConcurrentBag<string>();
         private string Address
         {
             get
@@ -42,26 +44,51 @@ namespace MiniMsg
                         string addr = "epgm://" + p.IPV4 + ";" + MultAddress;
                         requester.Bind(addr);
                         
+                        {
+                            lstBindAddress.Add(addr);
+                        }
+                        Console.WriteLine("bindpgm:" + addr);
                     }
 
                 }
                 else
                 {
-                    string tmp = LocalNode.LocalAddress.Substring(6);
-                    int index = tmp.IndexOf(':');
-                    string addr = "epgm://" + tmp.Substring(0, index + 1) + ";" + MultAddress;
+                    string tmp = LocalNode.LocalAddress;
+                    Console.WriteLine("bindpgm:" + tmp);
+                
+                    string addr = "epgm://" + tmp + ";" + MultAddress;
+                    Console.WriteLine("bindpgm:" + addr);
                     requester.Bind(addr);
                    
+                    {
+                        lstBindAddress.Add(addr);
+                    }
+                    //  Console.WriteLine("bindpgm:" + addr);
+
                 }
+                requester.Subscribe("noticetopicaddress");
                 while (true)
                 {
-                    requester.SubscribeAll();
+                    
                     using (ZFrame reply = requester.ReceiveFrame())
                     {
-                        Console.WriteLine(" Received: {1}!", reply.ReadString());
-                        if (ReceiveTopic != null)
+                        try
                         {
-                            ReceiveTopic(reply.ReadString());
+                            var data = reply.ReadString();
+                            if(data== "noticetopicaddress")
+                            {
+                                //主题数据
+                                continue;
+                            }
+                           
+                            //Console.WriteLine(" Received: {0}!", data);
+                            if (ReceiveTopic != null)
+                            {
+                                ReceiveTopic(data);
+                            }
+                        }catch(Exception ex)
+                        {
+                            Console.WriteLine(ex);
                         }
                     }
                 }
@@ -93,12 +120,28 @@ namespace MiniMsg
                                 //采用epgm协议发送数据
                                 string addr = "epgm://" + p.IPV4 + ";" + MultAddress;
                                 requester.Bind(addr);
+                                
+                                    lstBindAddress.Add(addr);
+                              
+                               
                                 using (var message = new ZMessage())
                                 {
-
-                                    message.Add(new ZFrame(string.Format("epgmpub {0}", "ss")));//这里定一个主题
-                                    message.Add(new ZFrame(string.Format(topic + "|" + p.IPV4)));//主题数据，只使用数据
+                                    string tmp = "";
+                                    if(string.IsNullOrEmpty(LocalNode.protocol))
+                                    {
+                                        tmp = string.Format("{0}:{1}", p.IPV4, LocalNode.LocalPort);
+                                    }
+                                    else
+                                    {
+                                        tmp = string.Format("{0}://{1}:{2}", LocalNode.protocol, p.IPV4, LocalNode.LocalPort);
+                                    }
+                                       
+                                    message.Add(new ZFrame("noticetopicaddress"));//这里定一个主题
+                                    message.Add(new ZFrame(string.Format(topic + "|" + tmp)));//主题数据，只使用数据
                                     requester.Send(message);
+                                 
+                                    Console.WriteLine("将本地地址加入发布列表:" + tmp);
+                                    Console.WriteLine("通知一次主题地址:" + topic);
                                 }
                                
                             }
@@ -114,18 +157,34 @@ namespace MiniMsg
                 {
                     try
                     {
-                        string tmp = LocalNode.LocalAddress.Substring(6);
-                        int index = tmp.IndexOf(':');
-                        string addr = "epgm://" + tmp.Substring(0, index + 1) + ";" + MultAddress;
+                        string tmp = LocalNode.LocalAddress;
+                      
+                        string addr = "epgm://" + tmp +";" + MultAddress;
                         requester.Bind(addr);
+                       
+                            lstBindAddress.Add(addr);
+                       
+                      
+                        if (string.IsNullOrEmpty(LocalNode.protocol))
+                        {
+                            tmp = string.Format("{0}:{1}", LocalNode.LocalAddress, LocalNode.LocalPort);
+                        }
+                        else
+                        {
+                            tmp = string.Format("{0}://{1}:{2}", LocalNode.protocol, LocalNode.LocalAddress, LocalNode.LocalPort);
+                        }
                         using (var message = new ZMessage())
                         {
 
-                            message.Add(new ZFrame(string.Format("epgmpub {0}", "ss")));//这里定一个主题
+                            message.Add(new ZFrame("noticetopicaddress"));//这里定一个主题
                             message.Add(new ZFrame(string.Format(topic + "|" + tmp)));//主题数据，只使用数据
                             requester.Send(message);
+                       
                         }
-                    
+                        Console.WriteLine("加入组播地址:" + addr);
+                        Console.WriteLine("绑定本地地址:" + tmp);
+                        Console.WriteLine("通知一次主题地址:" + topic);
+
                     }
                     catch(Exception ex)
                     {
@@ -146,17 +205,18 @@ namespace MiniMsg
         {
             using (var requester = new ZSocket(ZSocketType.PUB))
             {
-                
-                requester.Bind(Address);
-                requester.Send(new ZFrame(topic + "|" + address));
-                using (var message = new ZMessage())
+                foreach (var p in lstBindAddress)
                 {
+                    requester.Bind(p);
+                  
+                    using (var message = new ZMessage())
+                    {
 
-                    message.Add(new ZFrame(string.Format("epgmpub {0}", "ss")));//这里定一个主题
-                    message.Add(new ZFrame(string.Format(topic + "|" + address)));//主题数据，只使用数据
-                    requester.Send(message);
+                        message.Add(new ZFrame("noticetopicaddress"));//这里定一个主题
+                        message.Add(new ZFrame(string.Format(topic + "|" + address)));//主题数据，只使用数据
+                        requester.Send(message);
+                    }
                 }
-
             }
         }
     

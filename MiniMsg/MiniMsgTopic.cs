@@ -29,7 +29,9 @@ namespace MiniMsg
         /// <param name="msg">数据</param>
         public void Publish(string topic, byte[] msg)
         {
+          
             PubMgr.Instance.Send(topic, msg);
+          
             //
         }
 

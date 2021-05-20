@@ -61,11 +61,13 @@ namespace MiniMsg
             }
             else
             {
-                lst = new SubAddressLst();
+                lst = new SubAddressLst() { LstAddress = new List<string>(), SubAddresses = new List<SubAddress>() };
                 lst.LstAddress.Add(address);
-                lst.SubAddresses.Add(new SubAddress() { Address = address, AllAddress = new List<string>(), ErrorAddress = new List<string>() });
+                lst.SubAddresses.Add(new SubAddress() { Address = address, AllAddress = new List<string>(), ErrorAddress = new List<string>(), NodeFlage=node });
+                //Console.WriteLine("mmmm"+topic);
+                topicPub[topic.Trim()] = lst;
+                Console.WriteLine("加入：" + topicPub.Count);
 
-                topicPub[topic] = lst;
             }
             return true;
         }
@@ -79,9 +81,20 @@ namespace MiniMsg
         {
             List<string> lst = new List<string>();
             SubAddressLst lstTMp = null;
-            if (topicPub.TryGetValue(topic, out lstTMp))
+            foreach(var kv in  topicPub.Keys)
             {
+              
+                if(kv.Trim().CompareTo(topic.Trim())==0)
+                {
+                    topic = kv;
+                    break;
+                }
+            }
+            if (topicPub.TryGetValue(topic.Trim(), out lstTMp))
+            {
+               
                 int num = lstTMp.SubAddresses.Count;
+              
                 for (int i = 0; i < num; i++)
                 {
                     lst.Add(lstTMp.SubAddresses[i].Address);

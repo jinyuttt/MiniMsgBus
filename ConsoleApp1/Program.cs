@@ -11,15 +11,22 @@ namespace ConsoleApp1
     {
         static void Main(string[] args)
         {
+            LocalNode.LocalAddress = "192.168.0.105";
+            LocalNode.LocalPort = 6667;
             Console.WriteLine(System.Environment.Is64BitProcess);
             Task.Run(() => {
-                //  PgmClient();
+                //    PgmClient();
+                Thread.Sleep(5000);
+                 Sub();
 
-                Rec();
+               //  Rec();
+              //  ZmqSend();
             });
             Task.Run(() => {
-                // PgmServwr();
-                Send();
+               //  PgmServer();
+               //  Send();
+                Pub();
+             //   ZmqRec();
             });
 
             Console.Read();
@@ -46,7 +53,7 @@ namespace ConsoleApp1
             while(true)
             {
                 DataNative dataNative = new DataNative();
-                dataNative.Send("tcp://127.0.0.1:5556", System.Text.UTF8Encoding.UTF8.GetBytes(DateTime.Now.ToString()));
+                dataNative.Send("tcp://192.168.0.113:6667", System.Text.UTF8Encoding.UTF8.GetBytes(DateTime.Now.ToString()));
                 Thread.Sleep(1000);
             }
           
@@ -96,10 +103,10 @@ namespace ConsoleApp1
             using (var requester = new ZSocket(ZSocketType.SUB))
             {
                 // Connect192.168.0.158
-                requester.Connect("epgm://192.168.0.158;239.192.1.1:5555");
-                requester.SubscribeAll();
-                string requestText = "Hello";
-                Console.Write("Sending {0}...", requestText);
+                requester.Bind("epgm://192.168.0.110;239.192.1.1:5555");
+                requester.Subscribe("aa");
+                //string requestText = "Hello";
+                //Console.Write("Sending {0}...", requestText);
                 // requester.Connect("tcp://127.0.0.1:6666");
                 while (true)
                 {
@@ -111,29 +118,29 @@ namespace ConsoleApp1
                     // Receive
                     using (ZFrame reply = requester.ReceiveFrame())
                     {
-                        Console.WriteLine(" Received: {0} {1}!", requestText, reply.ReadString());
+                        Console.WriteLine(" Received: {0} !", reply.ReadString());
                     }
                 }
             }
         }
-        public static void PgmServwr()
+        public static void PgmServer()
         {
 
             using (var requester = new ZSocket(ZSocketType.PUB))
             {
                 // Connect
-                requester.Bind("epgm://192.168.0.158;239.192.1.1:5555");
+                requester.Bind("epgm://192.168.0.110;239.192.1.1:5555");
                 // requester.Connect("tcp://127.0.0.1:6666");
                 while (true)
                 {
-                    string requestText = "rrr";
-                    Console.Write("Sending {0}...", requestText);
+                    //string requestText = "rrr";
+                    //Console.Write("Sending {0}...", requestText);
                     using (var message = new ZMessage())
                     {
 
-                        message.Add(new ZFrame(string.Format("B {0}", "ss")));
-                        message.Add(new ZFrame(string.Format(" We do like to see this.")));
-                        Thread.Sleep(1000);
+                        message.Add(new ZFrame(string.Format("bb {0}", "mm")));
+                        message.Add(new ZFrame(string.Format(" we are 110.")));
+                        Thread.Sleep(3000);
 
 
                         requester.Send(message);
@@ -150,12 +157,49 @@ namespace ConsoleApp1
             }
         }
 
+        public static void ZmqSend()
+        {
+            try
+            {
+                using (var requester = new ZSocket(ZSocketType.REQ))
+                {
+                    requester.Connect("tcp://127.0.0.1:8080");
+                    requester.SendFrame(new ZFrame("sss"));
+                }
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
+        }
+
+        public static void ZmqRec()
+        {
+            try
+            {
+                using (var requester = new ZSocket(ZSocketType.REP))
+                {
+                    requester.Bind("tcp://127.0.0.1:8080");
+                   
+                    while(true)
+                    {
+                      var tsp=  requester.ReceiveFrame();
+                        
+                        Console.WriteLine(tsp.ReadString());
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
+        }
         #endregion
 
         public static void Sub()
         {
             MiniMsgTopic miniMsgTopic = new MiniMsgTopic();
-            miniMsgTopic.Subscribe("ssss");
+            miniMsgTopic.Subscribe("leveltop");
             miniMsgTopic.OnCall += MiniMsgTopic_OnCall;
 
         }
@@ -163,11 +207,15 @@ namespace ConsoleApp1
         public static void Pub()
         {
             MiniMsgTopic miniMsgTopic = new MiniMsgTopic();
-            miniMsgTopic.Publish("ssss", BitConverter.GetBytes(1111));
+            while (true)
+            {
+                miniMsgTopic.Publish("maintop", Encoding.UTF8.GetBytes(DateTime.Now.ToString()));
+                Thread.Sleep(3000);
+            }
         }
         private static void MiniMsgTopic_OnCall(string arg1, byte[] arg2)
         {
-           
+            Console.WriteLine("主题：{0} ,内容:{1}", arg1, Encoding.UTF8.GetString(arg2));
         }
     }
 }

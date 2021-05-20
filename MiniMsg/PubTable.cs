@@ -42,9 +42,9 @@ namespace MiniMsg
             }
             else
             {
-                var lstTmp = new List<string>();
+                lst = new List<string>();
                 lst.Add(address);
-                topicPub[topic] = lstTmp;
+                topicPub[topic] = lst;
             }
             return true;
         }
@@ -56,8 +56,20 @@ namespace MiniMsg
         /// <returns></returns>
         public List<string> GetAddress(string topic)
         {
+          
             List<string> lst = null;
+            foreach(var k in topicPub.Keys)
+            {
+                if(k.CompareTo(topic) ==0)
+                {
+                    topic = k;
+                  
+                    break;
+                }
+            }
+         
             topicPub.TryGetValue(topic,out lst);
+           
             return lst;
         }
 

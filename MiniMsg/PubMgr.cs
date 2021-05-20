@@ -18,6 +18,8 @@ namespace MiniMsg
         /// 异常数据
         /// </summary>
         private readonly BlockingCollection<Records> errorRecords = new BlockingCollection<Records>();
+
+        private ulong msgid = 0;
       
         public static PubMgr Instance
         {
@@ -104,22 +106,25 @@ namespace MiniMsg
         /// <param name="msg"></param>
         public void Send(string topic, byte[] msg)
         {
-
+         
             //从本地已经订阅的地址查找
             var lst = SubTable.Instance.GetAddress(topic);
-            if (lst != null)
+          //  Console.WriteLine("订阅地址：" + lst.Count);
+            if (lst != null&&lst.Count>0)
             {
+                
                 //记录发送异常的地址和数据
                 Dictionary<string, byte[]> dic = new Dictionary<string, byte[]>();
                 foreach (var p in lst)
                 {
 
-                    var ret = DataTransfer.Send(topic, msg, p);
+                    var ret = DataTransfer.Send(topic, msg, p,0, Interlocked.Increment(ref msgid));
                     if (ret.Length == 0)
                     {
                         //发布失败没有返回
                         dic[p] = msg;
                     }
+                 
                 }
                 if (dic.Count > 0)
                 {
@@ -129,6 +134,7 @@ namespace MiniMsg
             }
             else
             {
+            
                 //本地没有订阅节点
                 var lstPub = PubTable.Instance.GetAddress(topic);//从全局发布表中查询
                 if (lstPub != null && lstPub.Contains(LocalNode.LocalAddress)&& !LocalNode.LocalAddress.Contains("*"))
@@ -147,10 +153,11 @@ namespace MiniMsg
                         return;
                     }
                 }
-             
-                    //第一次本节点发布
-                    TopicPgm pgm = new TopicPgm();
-                    pgm.PgmPub(topic);
+
+              
+                //第一次本节点发布
+                   TopicPgm pgm = new TopicPgm(); 
+                   pgm.PgmPub(topic);
                     Task.Run(() =>
                     {
                         //等待10次，每次100ms,1秒了完成发布，否则数据丢失；因为地址通知考虑没有回复

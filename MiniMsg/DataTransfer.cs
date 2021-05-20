@@ -1,4 +1,5 @@
-﻿using System.Buffers;
+﻿using System;
+using System.Buffers;
 
 namespace MiniMsg
 {
@@ -22,7 +23,9 @@ namespace MiniMsg
         {
             var v = Util.Convert(topic, bytes, flage, msgid);
             //
+           
             DataNative native = new DataNative();
+           // Console.WriteLine("返回：" + address);
             var ret = native.Send(address, v);
             pool.Return(v);
             return ret;
