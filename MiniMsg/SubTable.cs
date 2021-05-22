@@ -31,6 +31,16 @@ namespace MiniMsg
         /// <returns></returns>
         public bool Add(string topic, string address,string node)
         {
+            // string key = "";
+            Console.WriteLine("接收到注册信息，主题:{0},地址:{1}", topic, address);
+            foreach(var p in topicPub.Keys)
+            {
+                if(p.CompareTo(topic)==0)
+                {
+                    topic = p;
+                    break;
+                }
+            }
             if (topicPub.TryGetValue(topic, out SubAddressLst lst))
             {
                 lock (lst)
@@ -47,14 +57,14 @@ namespace MiniMsg
                         if (sub == null)
                         {
                             // 没有此节点
-                            var p=new SubAddress() { Address = address, AllAddress = new List<string>(), ErrorAddress = new List<string>() };
+                            var p = new SubAddress() { Address = address, AllAddress = new List<string>(), ErrorAddress = new List<string>() };
                             p.AllAddress.Add(address);
                             lst.SubAddresses.Add(p);
                         }
                         else
                         {
                             //直接加入节点地址
-                            sub.AllAddress.Add(node);
+                            sub.AllAddress.Add(address);
                         }
                     }
                 }
@@ -63,11 +73,9 @@ namespace MiniMsg
             {
                 lst = new SubAddressLst() { LstAddress = new List<string>(), SubAddresses = new List<SubAddress>() };
                 lst.LstAddress.Add(address);
-                lst.SubAddresses.Add(new SubAddress() { Address = address, AllAddress = new List<string>(), ErrorAddress = new List<string>(), NodeFlage=node });
-                //Console.WriteLine("mmmm"+topic);
+                var p = new SubAddress() { Address = address, AllAddress = new List<string>(), ErrorAddress = new List<string>(), NodeFlage = node };
+                lst.SubAddresses.Add(p);
                 topicPub[topic.Trim()] = lst;
-                Console.WriteLine("加入：" + topicPub.Count);
-
             }
             return true;
         }
@@ -111,6 +119,14 @@ namespace MiniMsg
         public SubAddressLst GetAddressLst(string topic)
         {
             SubAddressLst lstTMp = null;
+            foreach(var p in topicPub.Keys)
+            {
+                if(p.CompareTo(topic)==0)
+                {
+                    topic = p;
+                    break;
+                }
+            }
             topicPub.TryGetValue(topic, out lstTMp);
             return lstTMp;
         }

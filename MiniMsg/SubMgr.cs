@@ -30,6 +30,7 @@ namespace MiniMsg
 
 
         private static readonly Lazy<SubMgr> sub = new Lazy<SubMgr>(() => new SubMgr());
+        private readonly object lock_obj = new object();
 
         public static SubMgr Instance
         {
@@ -38,13 +39,25 @@ namespace MiniMsg
 
         private SubMgr()
         {
-            InitSub();
-            InitPgm();
+            Init();
+        }
 
+        private void Init()
+        {
+            InitDataRecive();
+            InitPgm();
             ProcessSub();
             RemoveFilter();
         }
 
+
+        /// <summary>
+        /// 调用空方法初始化实例
+        /// </summary>
+        public void OpenChanel()
+        {
+           
+        }
 
         private (string,string,string) GetRealAddress(string address)
         {
@@ -73,7 +86,6 @@ namespace MiniMsg
             pgm.ReceiveTopic += Pgm_ReceiveTopic;
             Thread thread = new Thread(() =>
             {
-
                 pgm.PgmSub();
             });
             thread.IsBackground = true;
@@ -81,7 +93,7 @@ namespace MiniMsg
             thread.Start();
             pgm.PgmPub("Global");//内部主题，更新一次发布地址
             Thread.Sleep(100);
-            Console.WriteLine("InitPgm");
+           
 
 
 
@@ -96,7 +108,7 @@ namespace MiniMsg
             {
                 foreach (var p in topicStructs.GetConsumingEnumerable())
                 {
-                    Console.WriteLine("分发数据");
+                    
                     if (p.Flage == 1)
                     {
                         //订阅地址加入
@@ -143,14 +155,14 @@ namespace MiniMsg
         /// <summary>
         /// 初始化接收数据，准备网络接收数据（订阅的数据和订阅信息）
         /// </summary>
-        private void InitSub()
+        private void InitDataRecive()
         {
             DataNative native = new DataNative();
             string tmp = "";
             if (string.IsNullOrEmpty(LocalNode.LocalAddress))
             {
              
-                LocalNode.GetNetworkInterface();
+                 LocalNode.GetNetworkInterface();
                 if (string.IsNullOrEmpty(LocalNode.protocol))
                 {
                     tmp = string.Format("{0}:{1}", "*", LocalNode.LocalPort);
@@ -174,12 +186,13 @@ namespace MiniMsg
                 LocalNode.Netprotocol = native.Receive("tcp://"+LocalNode.LocalAddress+":"+LocalNode.LocalPort);
             }
             //
-            //Console.WriteLine("LocalNode.Netprotocol:" + LocalNode.Netprotocol);
+            Console.WriteLine("LocalNode.Netprotocol:" + LocalNode.Netprotocol);
             var items = GetRealAddress(LocalNode.Netprotocol);
             LocalNode.LocalAddress = items.Item2;
             LocalNode.LocalPort = int.Parse(items.Item3);
             LocalNode.protocol = items.Item1;
-             Thread rec = new Thread(() =>
+            Console.WriteLine("LocalNode.Netprotocol:" + LocalNode.LocalAddress);
+            Thread rec = new Thread(() =>
               {
                   //接收数据
                   while (true)
@@ -187,12 +200,10 @@ namespace MiniMsg
                       var buf = native.GetData();
                    
                       var v = Util.Convert(buf);
-                      Console.WriteLine(v.Flage);
-                    //  Console.WriteLine(UTF8Encoding.UTF8.GetString(buf));
+                  
                       if (v.Flage == 0)
                       {
-                          //数据
-
+                         
                           topicStructs.Add(v);
                       }
                       else
@@ -225,9 +236,21 @@ namespace MiniMsg
                 while(true)
                 {
                     Thread.Sleep(2000);
-                    string[] keys = new string[dicMsg.Count];
-                    dicMsg.Keys.CopyTo(keys, 0);
-                    foreach(var  p in keys)
+                    List<string> lst = new List<string>();
+                    try
+                    {
+                        foreach (var p in dicMsg.Keys)
+                        {
+                            lst.Add(p);
+                        }
+                    }
+                    catch(Exception ex)
+                    {
+                        //集合变化继续执行即可
+                        Console.WriteLine("集合变化可以忽略," + ex.Message);
+                    }
+                    
+                    foreach(var  p in lst)
                     {
                         if(dicMsg.TryGetValue(p,out long ticks))
                         {
@@ -283,15 +306,16 @@ namespace MiniMsg
                 }
                 return;
             }
-          // Console.WriteLine("recvice topic {0}", topic);
-         
+        
             //将新发布节点加入本地
             PubTable.Instance.Add(topic, tmp[tmp.Length - 1]);
             Console.WriteLine("新加入的发布地址，主题:{0} 地址:{1}", topic, tmp[tmp.Length - 1]);
             //查看本节点是否已经订阅过这个主题
-           var ov= LocalNode.GetLocal(topic);
+          
+            var ov= LocalNode.GetLocal(topic);
             if (ov != null)
             {
+                Console.WriteLine("获取本地订阅");
                 //本地已经订阅的主题发送订阅信息
                 this.SendSub(topic, ov as MiniMsgTopic);
             }
@@ -305,7 +329,7 @@ namespace MiniMsg
         /// <param name="sub">数据</param>
         public void  SendSub(string topic, MiniMsgTopic sub)
         {
-            Console.WriteLine("发送订阅");
+             Console.WriteLine("发送订阅");
             var lst = PubTable.Instance.GetAddress(topic);
           
             
@@ -326,10 +350,13 @@ namespace MiniMsg
                 {
                     //绑定了所有地址，需要将明确的地址发送出去订阅
                     //取出真实的端口
-                    //int index = addr.LastIndexOf(":");
-                    //int port = int.Parse(addr.Substring(index+1));
+                   
                     foreach(var p in LocalNode.LocalAddressFamily)
                     {
+                        if(p.IPV4=="127.0.0.1")
+                        {
+                            continue;
+                        }
                         if (string.IsNullOrEmpty(LocalNode.protocol))
                         {
                             tmp = string.Format("{0}:{1}", p.IPV4, LocalNode.LocalPort);
@@ -338,8 +365,10 @@ namespace MiniMsg
                         {
                             tmp = string.Format("{0}://{1}:{2}", LocalNode.protocol, p.IPV4, LocalNode.LocalPort);
                         }
-                      //  string subAddres = "tcp://" + p.IPV4 + ":" + port;
+                   
                         DataTransfer.Send(topic, Encoding.UTF8.GetBytes(tmp), pub, 1);
+                        Console.WriteLine("注册 topic: {0} addr:{1}，local:{2}", topic, pub,tmp);
+
                     }
                 }
                 else
@@ -359,7 +388,6 @@ namespace MiniMsg
             }
 
             //保持本地订阅实例，用于数据回传
-            //
             if(dicSubObj.TryGetValue(topic,out List<MiniMsgTopic> lstTopic))
             {
                 lock(lstTopic)
@@ -396,5 +424,7 @@ namespace MiniMsg
                 }
             }
         }
+   
+        
     }
 }

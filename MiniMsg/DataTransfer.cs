@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Buffers;
+using System.Text;
 
 namespace MiniMsg
 {
@@ -23,12 +24,20 @@ namespace MiniMsg
         {
             var v = Util.Convert(topic, bytes, flage, msgid);
             //
-           
-            DataNative native = new DataNative();
-           // Console.WriteLine("返回：" + address);
-            var ret = native.Send(address, v);
-            pool.Return(v);
-            return ret;
+            try
+            {
+                DataNative native = new DataNative();
+
+                var ret = native.Send(address, v);
+
+                pool.Return(v, true);
+                return ret;
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine(ex);
+                return null;
+            }
         }
 
        

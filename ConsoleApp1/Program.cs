@@ -11,22 +11,37 @@ namespace ConsoleApp1
     {
         static void Main(string[] args)
         {
-            LocalNode.LocalAddress = "192.168.0.105";
-            LocalNode.LocalPort = 6667;
+           // Test();
+            // LocalNode.LocalAddress = "192.168.0.129";
+            //  LocalNode.LocalPort = 6667;
             Console.WriteLine(System.Environment.Is64BitProcess);
             Task.Run(() => {
-                //    PgmClient();
-                Thread.Sleep(5000);
-                 Sub();
+                //  PgmClient();
+                // Thread.Sleep(5000);
+                try
+                {
+                    Sub();
+                }
+                catch(Exception ex)
+                {
+                    Console.WriteLine(ex);
+                }
 
-               //  Rec();
+              //   Rec();
               //  ZmqSend();
             });
             Task.Run(() => {
-               //  PgmServer();
-               //  Send();
-                Pub();
-             //   ZmqRec();
+                try
+                {
+                    //  PgmServer();
+                    // Send();
+                    Pub();
+                    //   ZmqRec();
+                }
+                catch(Exception ex)
+                {
+                    Console.WriteLine(ex);
+                }
             });
 
             Console.Read();
@@ -53,7 +68,7 @@ namespace ConsoleApp1
             while(true)
             {
                 DataNative dataNative = new DataNative();
-                dataNative.Send("tcp://192.168.0.113:6667", System.Text.UTF8Encoding.UTF8.GetBytes(DateTime.Now.ToString()));
+                dataNative.Send("tcp://192.168.0.108:6667", System.Text.UTF8Encoding.UTF8.GetBytes(DateTime.Now.ToString()));
                 Thread.Sleep(1000);
             }
           
@@ -61,12 +76,12 @@ namespace ConsoleApp1
         static void Rec()
         {
             DataNative dataNative = new DataNative();
-            dataNative.Receive("tcp://127.0.0.1:5556");
+            dataNative.Receive("tcp://*:6667");
             Task.Run(() => {
                 while (true)
                 {
                     var ss = dataNative.GetData();
-                    Console.WriteLine(UTF8Encoding.UTF8.GetString(ss));
+                    Console.WriteLine(UTF8Encoding.UTF8.GetString(ss)+"_1");
                 }
             });
           
@@ -196,6 +211,25 @@ namespace ConsoleApp1
         }
         #endregion
 
+
+        private static void Test()
+        {
+            string str = "jinyu1";
+            string str1 = "jinyu1";
+            if(str==str1)
+            {
+                Console.WriteLine("真");
+            }
+            else if(str.CompareTo(str)==0)
+            {
+                Console.WriteLine("比较真");
+            }
+            else  if(str.Equals(str1))
+            {
+                Console.WriteLine("Equals真");
+            }
+        }
+
         public static void Sub()
         {
             MiniMsgTopic miniMsgTopic = new MiniMsgTopic();
@@ -207,10 +241,13 @@ namespace ConsoleApp1
         public static void Pub()
         {
             MiniMsgTopic miniMsgTopic = new MiniMsgTopic();
+            string tmp = "";
             while (true)
             {
-                miniMsgTopic.Publish("maintop", Encoding.UTF8.GetBytes(DateTime.Now.ToString()));
-                Thread.Sleep(3000);
+                 tmp ="Mai，"+ DateTime.Now.ToString();
+                miniMsgTopic.Publish("maintop", Encoding.UTF8.GetBytes(tmp));
+                //Console.WriteLine(tmp);
+                Thread.Sleep(1000);
             }
         }
         private static void MiniMsgTopic_OnCall(string arg1, byte[] arg2)

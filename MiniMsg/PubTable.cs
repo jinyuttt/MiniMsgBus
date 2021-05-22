@@ -29,6 +29,14 @@ namespace MiniMsg
         /// <returns></returns>
         public bool Add(string topic, string address)
         {
+            foreach(var k in  topicPub.Keys)
+            {
+                if(k.CompareTo(topic)==0)
+                {
+                    topic = k;
+                    break;
+                }
+            }
             if (topicPub.TryGetValue(topic, out List<string> lst))
             {
                 if (lst.Contains(address))

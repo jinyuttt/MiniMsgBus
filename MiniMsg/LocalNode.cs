@@ -72,8 +72,16 @@ namespace MiniMsg
         /// <returns></returns>
         public static object GetLocal(string topic)
         {
-            Console.WriteLine("本地订阅主题个数:" + localSub.Count);
+           
             object ov = null;
+            foreach(var p in localSub.Keys)
+            {
+                if(p.CompareTo(topic)==0)
+                {
+                    topic = p;
+                    break;
+                }
+            }
             localSub.TryGetValue(topic,out ov);
             return ov;
                 
@@ -89,28 +97,36 @@ namespace MiniMsg
         {
             try
             {
-
-                NetworkInterface[] adapters = NetworkInterface.GetAllNetworkInterfaces();
-                foreach (NetworkInterface ni in adapters)
+                if(LocalAddressFamily.Count > 0)
                 {
-                    IPInterfaceProperties ipProperties = ni.GetIPProperties();
-                   
-                    foreach (var curIP in ipProperties.UnicastAddresses)
+                    return;
+                }
+                lock (LocalAddressFamily)
+                {
+                    if (LocalAddressFamily.Count > 0)
                     {
-                       
-                        var v = new NetWorkInfo() { IPV4 = curIP.Address.ToString(), Mask = curIP.IPv4Mask.ToString(), DnsAddress=ipProperties.DnsAddresses.ToString()  };
-                        if (v.IPV4.Contains(":"))
-                        {
-                            v.IPV6 = v.IPV4;
-                            v.IPV4 = "127.0.0.1";
-                        }
-                        if(ipProperties.GatewayAddresses.Count>0)
-                        v.GatewayAddress = ipProperties.GatewayAddresses[0].Address.ToString();
-                         
-                        LocalAddressFamily.Add(v);
+                        return;
                     }
+                    NetworkInterface[] adapters = NetworkInterface.GetAllNetworkInterfaces();
+                    foreach (NetworkInterface ni in adapters)
+                    {
+                        IPInterfaceProperties ipProperties = ni.GetIPProperties();
 
+                        foreach (var curIP in ipProperties.UnicastAddresses)
+                        {
 
+                            var v = new NetWorkInfo() { IPV4 = curIP.Address.ToString(), Mask = curIP.IPv4Mask.ToString(), DnsAddress = ipProperties.DnsAddresses.ToString() };
+                            if (v.IPV4.Contains(":"))
+                            {
+                                v.IPV6 = v.IPV4;
+                                v.IPV4 = "127.0.0.1";
+                            }
+                            if (ipProperties.GatewayAddresses.Count > 0)
+                                v.GatewayAddress = ipProperties.GatewayAddresses[0].Address.ToString();
+
+                            LocalAddressFamily.Add(v);
+                        }
+                    }
                 }
             }
             catch (Exception ex)

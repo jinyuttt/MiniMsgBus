@@ -25,7 +25,7 @@ namespace MiniMsg
         {
             byte[] tp = Encoding.UTF8.GetBytes(topic);
             byte[] len = BitConverter.GetBytes((short)tp.Length);
-            var v = pool.Rent(1 +32+8+2+tp.Length + bytes.Length);
+            var v = pool.Rent(1+32+8+2+tp.Length + bytes.Length);
             using(MemoryStream  mem=new MemoryStream(v))
             {
                 mem.WriteByte(flage);
@@ -38,21 +38,26 @@ namespace MiniMsg
             return v;
         }
 
+        /// <summary>
+        /// 标记（1）+guid+msgid+主题长度（2）+主题（m）+数据
+        /// </summary>
+        /// <param name="bytes"></param>
+        /// <returns></returns>
         public static TopicStruct Convert(byte[] bytes)
         {
-            byte flage = bytes[0];
-          
-           
+                byte flage = bytes[0];
                 //
                 MemoryStream memory = new MemoryStream(bytes);
                 memory.ReadByte();
                 var id = pool.Rent(32);
                 memory.Read(id, 0, 32);
                 var guid = Encoding.UTF8.GetString(id);
+                   pool.Return(id);
                 //
                 var msgno = pool.Rent(8);
                 memory.Read(msgno, 0, 8);
                 var msgid = BitConverter.ToUInt64(msgno);
+                 pool.Return(msgno);
                 //
 
                 var len = pool.Rent(2);

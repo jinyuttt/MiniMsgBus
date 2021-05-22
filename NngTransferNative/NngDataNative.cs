@@ -94,13 +94,21 @@ namespace NngTransferNative
         /// <returns></returns>
         public  byte[] Send(string address,byte[]bytes)
         {
-            using (var reqSocket = GetFactory().RequesterOpen().ThenDial(address).Unwrap())
+            try
             {
-                reqSocket.SetOpt(nng.Native.Defines.NNG_OPT_SENDTIMEO, new nng_duration { TimeMs = 100 });
-                var msg = factory.CreateMessage();
-                msg.Append(bytes);
-                reqSocket.SendMsg(msg).Unwrap();
-                return reqSocket.RecvMsg().Unwrap().AsSpan().ToArray();
+                using (var reqSocket = GetFactory().RequesterOpen().ThenDial(address).Unwrap())
+                {
+                    reqSocket.SetOpt(nng.Native.Defines.NNG_OPT_SENDTIMEO, new nng_duration { TimeMs = 100 });
+                    var msg = factory.CreateMessage();
+                    msg.Append(bytes);
+                    reqSocket.SendMsg(msg).Unwrap();
+                    return reqSocket.RecvMsg().Unwrap().AsSpan().ToArray();
+                }
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine(ex);
+                return null;
             }
         }
 

@@ -2,6 +2,8 @@
 using ZeroMQ;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
+using System.IO;
+
 namespace MiniMsg
 {
 
@@ -11,21 +13,13 @@ namespace MiniMsg
     public  class TopicPgm
     {
 
-        private string epgmAddres = "";
-        public string LocalAddress { get; set; } =LocalNode.LocalAddress;
+        
+    
 
         public string MultAddress { get; set; } = "239.192.1.1:5555";
 
-        public ConcurrentBag<string> lstBindAddress = new ConcurrentBag<string>();
-        private string Address
-        {
-            get
-            {
-                if (string.IsNullOrEmpty(epgmAddres)) { epgmAddres = "epgm://" + LocalAddress + ";" + MultAddress; }
-                return epgmAddres;
-            }
-        }
-
+        public List<string> lstBindPgmAddress = new List<string>();
+      
         public event Action<string> ReceiveTopic;
 
         /// <summary>
@@ -39,13 +33,21 @@ namespace MiniMsg
                 if (LocalNode.LocalAddress.Contains("*"))
                 {
                     //绑定本地所有IP
+                    //if (LocalNode.LocalAddressFamily == null || LocalNode.LocalAddressFamily.Count == 0)
+                    {
+                        LocalNode.GetNetworkInterface();
+                    }
                     foreach (var p in LocalNode.LocalAddressFamily)
                     {
+                        if (p.IPV4 == "127.0.0.1" || p.IPV4.Contains("169.254"))
+                        {
+                            continue;
+                        }
                         string addr = "epgm://" + p.IPV4 + ";" + MultAddress;
                         requester.Bind(addr);
-                        
+                         if(!lstBindPgmAddress.Contains("addr"))
                         {
-                            lstBindAddress.Add(addr);
+                            lstBindPgmAddress.Add(addr);
                         }
                         Console.WriteLine("bindpgm:" + addr);
                     }
@@ -54,14 +56,14 @@ namespace MiniMsg
                 else
                 {
                     string tmp = LocalNode.LocalAddress;
-                    Console.WriteLine("bindpgm:" + tmp);
+                   // Console.WriteLine("bindpgm:" + tmp);
                 
                     string addr = "epgm://" + tmp + ";" + MultAddress;
                     Console.WriteLine("bindpgm:" + addr);
                     requester.Bind(addr);
-                   
+                    if(!lstBindPgmAddress.Contains(addr))
                     {
-                        lstBindAddress.Add(addr);
+                        lstBindPgmAddress.Add(addr);
                     }
                     //  Console.WriteLine("bindpgm:" + addr);
 
@@ -98,17 +100,22 @@ namespace MiniMsg
         }
 
         /// <summary>
-        /// 通知主题发布地址
+        ///  通知主题发布地址
         /// </summary>
-        /// <param name="topic"></param>
-        public void PgmPub(string topic)
+        /// <param name="topic">发布的主题</param>
+        /// <returns>本地发布地址</returns>
+        public List<string> PgmPub(string topic)
         {
+            List<string> lst = new List<string>();
             using (var requester = new ZSocket(ZSocketType.PUB))
             {
              
                 //如果绑定了所有网卡接收
                 if (LocalNode.LocalAddress.Contains("*"))
                 {
+                   
+                        LocalNode.GetNetworkInterface();
+                    
                     //绑定本地所有IP
                     foreach(var p in LocalNode.LocalAddressFamily)
                     {
@@ -118,30 +125,47 @@ namespace MiniMsg
                             if (!string.IsNullOrEmpty(p.IPV4))
                             {
                                 //采用epgm协议发送数据
-                                string addr = "epgm://" + p.IPV4 + ";" + MultAddress;
-                                requester.Bind(addr);
-                                
-                                    lstBindAddress.Add(addr);
-                              
-                               
-                                using (var message = new ZMessage())
+                                if(p.IPV4=="127.0.0.1"||p.IPV4.Contains("169.254"))
                                 {
-                                    string tmp = "";
-                                    if(string.IsNullOrEmpty(LocalNode.protocol))
+                                    continue;
+                                }
+                                try
+                                {
+                                    string addr = "epgm://" + p.IPV4 + ";" + MultAddress;
+                                    requester.Bind(addr);
+                                 //   Console.WriteLine("pgmBind:" + addr);
+                                    //using(StreamWriter sw=new StreamWriter("dd.txt",true))
+                                    //{
+                                    //    sw.WriteLine(addr);
+                                    //}
+                                    if (!lstBindPgmAddress.Contains(addr))
                                     {
-                                        tmp = string.Format("{0}:{1}", p.IPV4, LocalNode.LocalPort);
+                                        lstBindPgmAddress.Add(addr);
                                     }
-                                    else
+
+                                    using (var message = new ZMessage())
                                     {
-                                        tmp = string.Format("{0}://{1}:{2}", LocalNode.protocol, p.IPV4, LocalNode.LocalPort);
+                                        string tmp = "";
+                                        if (string.IsNullOrEmpty(LocalNode.protocol))
+                                        {
+                                            tmp = string.Format("{0}:{1}", p.IPV4, LocalNode.LocalPort);
+                                        }
+                                        else
+                                        {
+                                            tmp = string.Format("{0}://{1}:{2}", LocalNode.protocol, p.IPV4, LocalNode.LocalPort);
+                                        }
+
+                                        message.Add(new ZFrame("noticetopicaddress"));//这里定一个主题
+                                        message.Add(new ZFrame(string.Format(topic + "|" + tmp)));//主题数据，只使用数据
+                                        requester.Send(message);
+                                        lst.Add(tmp);
+                                     //   Console.WriteLine("将本地地址加入发布列表:" + tmp);
+                                        //Console.WriteLine("通知一次主题地址:" + topic);
                                     }
-                                       
-                                    message.Add(new ZFrame("noticetopicaddress"));//这里定一个主题
-                                    message.Add(new ZFrame(string.Format(topic + "|" + tmp)));//主题数据，只使用数据
-                                    requester.Send(message);
-                                 
-                                    Console.WriteLine("将本地地址加入发布列表:" + tmp);
-                                    Console.WriteLine("通知一次主题地址:" + topic);
+                                }
+                                catch(Exception ex)
+                                {
+                                    Console.WriteLine(ex);
                                 }
                                
                             }
@@ -161,10 +185,13 @@ namespace MiniMsg
                       
                         string addr = "epgm://" + tmp +";" + MultAddress;
                         requester.Bind(addr);
-                       
-                            lstBindAddress.Add(addr);
-                       
-                      
+
+                        if (!lstBindPgmAddress.Contains(addr))
+                        {
+                            lstBindPgmAddress.Add(addr);
+                        }
+
+
                         if (string.IsNullOrEmpty(LocalNode.protocol))
                         {
                             tmp = string.Format("{0}:{1}", LocalNode.LocalAddress, LocalNode.LocalPort);
@@ -173,6 +200,7 @@ namespace MiniMsg
                         {
                             tmp = string.Format("{0}://{1}:{2}", LocalNode.protocol, LocalNode.LocalAddress, LocalNode.LocalPort);
                         }
+                        lst.Add(tmp);
                         using (var message = new ZMessage())
                         {
 
@@ -181,9 +209,9 @@ namespace MiniMsg
                             requester.Send(message);
                        
                         }
-                        Console.WriteLine("加入组播地址:" + addr);
-                        Console.WriteLine("绑定本地地址:" + tmp);
-                        Console.WriteLine("通知一次主题地址:" + topic);
+                        //Console.WriteLine("加入组播地址:" + addr);
+                        //Console.WriteLine("绑定本地地址:" + tmp);
+                        //Console.WriteLine("通知一次主题地址:" + topic);
 
                     }
                     catch(Exception ex)
@@ -192,8 +220,8 @@ namespace MiniMsg
                     }
                 }
                
-              
             }
+            return lst;
         }
 
         /// <summary>
@@ -205,13 +233,11 @@ namespace MiniMsg
         {
             using (var requester = new ZSocket(ZSocketType.PUB))
             {
-                foreach (var p in lstBindAddress)
+                foreach (var p in lstBindPgmAddress)
                 {
                     requester.Bind(p);
-                  
                     using (var message = new ZMessage())
                     {
-
                         message.Add(new ZFrame("noticetopicaddress"));//这里定一个主题
                         message.Add(new ZFrame(string.Format(topic + "|" + address)));//主题数据，只使用数据
                         requester.Send(message);
