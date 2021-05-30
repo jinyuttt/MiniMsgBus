@@ -1,8 +1,6 @@
 ﻿using System;
 using ZeroMQ;
 using System.Collections.Generic;
-using System.Collections.Concurrent;
-using System.IO;
 
 namespace MiniMsg
 {
@@ -10,7 +8,7 @@ namespace MiniMsg
     /// <summary>
     /// 主题传输
     /// </summary>
-    public  class TopicPgm
+    public  class TopicPgm1
     {
 
         
@@ -65,8 +63,7 @@ namespace MiniMsg
                     {
                         lstBindPgmAddress.Add(addr);
                     }
-                    //  Console.WriteLine("bindpgm:" + addr);
-
+                  
                 }
                 requester.Subscribe("noticetopicaddress");
                 while (true)
@@ -82,8 +79,6 @@ namespace MiniMsg
                                 //主题数据
                                 continue;
                             }
-                           
-                            //Console.WriteLine(" Received: {0}!", data);
                             if (ReceiveTopic != null)
                             {
                                 ReceiveTopic(data);
@@ -114,8 +109,7 @@ namespace MiniMsg
                 if (LocalNode.LocalAddress.Contains("*"))
                 {
                    
-                        LocalNode.GetNetworkInterface();
-                    
+                    LocalNode.GetNetworkInterface();    
                     //绑定本地所有IP
                     foreach(var p in LocalNode.LocalAddressFamily)
                     {

@@ -22,6 +22,7 @@ namespace MiniMsg
         readonly List<ErrorQueue> queues = new List<ErrorQueue>();
         readonly SemaphoreSlim _semaphore = new SemaphoreSlim(Environment.ProcessorCount);
         readonly SemaphoreSlim  sub = new SemaphoreSlim(Environment.ProcessorCount);
+        TopicBroadcast topicBroadcast = new TopicBroadcast();
         private ulong msgid = 0;
       
         public static PubMgr Instance
@@ -171,7 +172,10 @@ namespace MiniMsg
 
         }
 
-
+       /// <summary>
+       /// 处理异常数据
+       /// </summary>
+       /// <param name="queue"></param>
         private void StartThredRecord(ErrorQueue queue)
         {
             Task.Run(() =>
@@ -295,9 +299,11 @@ namespace MiniMsg
                 }
 
                 SubMgr.Instance.OpenChanel();//初始化，启动数据接收订阅
-                //第一次本节点发布
-                TopicPgm pgm = new TopicPgm();
-                var lstLocal = pgm.PgmPub(topic);
+                                             //第一次本节点发布
+                                             //TopicPgm1 pgm = new TopicPgm1();
+                                             //TopicZmqIpc ipc = new TopicZmqIpc();
+                
+                var lstLocal = topicBroadcast.PgmPub(topic);
                
                 //将新发布节点加入本地
                 foreach (var p in lstLocal)
@@ -330,16 +336,29 @@ namespace MiniMsg
                 });
             }
         }
+    
+    
     }
 
 
-
+    /// <summary>
+    /// 发送异常的数据
+    /// </summary>
     internal class ErrorQueue
     {
+        /// <summary>
+        /// 主题
+        /// </summary>
         public string Topic { get; set; }
 
+        /// <summary>
+        /// 数据
+        /// </summary>
         public ConcurrentQueue<Records> Records { get; set; }
 
+        /// <summary>
+        /// 是否完成
+        /// </summary>
         public bool IsComlepte { get; set; }
     }
 }
