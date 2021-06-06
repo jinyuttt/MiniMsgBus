@@ -197,7 +197,7 @@ namespace MiniMsg
                     //通知本节点发布主题发布地址，组播和ipc同时，组播可能被占
                     pgm.Publish("noticetopicaddress", Encoding.UTF8.GetBytes(topic + "|" + p));
                     ipc.IpcSend("minimsg", Encoding.UTF8.GetBytes(topic + "|" + p+">>"+LocalNode.GUID));//同时发给本机其它节点
-                    Console.WriteLine("pgmpub:");
+                  
                 }
                 catch (Exception ex)
                 {

@@ -235,7 +235,7 @@ namespace MiniMsg
             rec.IsBackground = true;
             rec.Name = "InitSub";
             rec.Start();
-            Console.WriteLine("InitSub");
+           
         }
         
         /// <summary>
@@ -325,7 +325,7 @@ namespace MiniMsg
         /// <param name="sub">数据</param>
         public void  SendSub(string topic, MiniMsgTopic sub)
         {
-             Console.WriteLine("发送订阅");
+             Console.WriteLine("发送订阅主题:{0}",topic);
             var lst = PubTable.Instance.GetAddress(topic);
             if(lst==null||lst.Count==0)
             {

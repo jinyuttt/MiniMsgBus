@@ -21,7 +21,8 @@ namespace MiniMsg
         readonly List<ErrorQueue> queues = new List<ErrorQueue>();
         readonly SemaphoreSlim _semaphore = new SemaphoreSlim(Environment.ProcessorCount);
         readonly SemaphoreSlim  sub = new SemaphoreSlim(Environment.ProcessorCount);
-        TopicBroadcast topicBroadcast = new TopicBroadcast();
+        readonly TopicBroadcast topicBroadcast = new TopicBroadcast();
+        ConcurrentDictionary<string, string> dicNodeGuid = new ConcurrentDictionary<string, string>();
         private ulong msgid = 0;
       
         public static PubMgr Instance
@@ -108,6 +109,9 @@ namespace MiniMsg
         }
         
 
+        /// <summary>
+        /// 线程处理异常数据
+        /// </summary>
         private void CheckErrRecord()
         {
             Thread check = new Thread(() =>
@@ -126,7 +130,6 @@ namespace MiniMsg
                     if (cur.IsComlepte)
                     {
                         _semaphore.Wait();//等待前面的主题处理完成，不能太多线程
-                   
                         StartThredRecord(cur);
                     }
                  
@@ -185,12 +188,9 @@ namespace MiniMsg
                 while (!queue.Records.IsEmpty)
                 {
                    
-                    //获取本地订阅节点
+                  
                     Records p = null;
                     queue.Records.TryDequeue(out p);
-                  
-                    var addr = SubTable.Instance.GetAddressLst(p.Topic);
-                  
                     foreach (var kv in p.Record)
                     {
 
@@ -198,13 +198,25 @@ namespace MiniMsg
                         var ret = DataTransfer.Send(p.Topic, kv.Value, kv.Key);
                         if (ret == null || ret.Length == 0)
                         {
-                         
+                            //获取本地订阅节点
+                            var addr = SubTable.Instance.GetAddressLst(p.Topic);
+
                             //还是失败，判断是否是多网卡绑定订阅地址
+                            //与当前节点使用的通信地址一致的地址信息
                             var err = addr.SubAddresses.Find(X => X.Address.CompareTo(kv.Key) == 0);
+                            if(err==null)
+                            {
+                                //没有找到，可能前面已经替换了
+                                string node = "";
+                                if (dicNodeGuid.TryGetValue(kv.Key, out node))
+                                {
+                                    err = addr.SubAddresses.Find(X => X.NodeFlage == node);
+                                }
+                            }
                             if (err != null)
                             {
                                 //返回判断非异常的地址，同一节点
-                                Console.WriteLine("准备处理的异常,{0}>>{1}" ,kv.Key,err.NodeFlage);
+                              //  Console.WriteLine("准备处理的异常,{0}>>{1}" ,kv.Key,err.NodeFlage);
                                 var cur = err.AllAddress.FindAll(X => !err.ErrorAddress.Contains(X));
                                 if (cur.Count == 0)
                                 {
@@ -216,29 +228,36 @@ namespace MiniMsg
                                         {
                                             addr.SubAddresses.Remove(err);
                                             addr.LstAddress.RemoveAll(X => err.AllAddress.Contains(X));
+                                            string tmp = "";
+                                            foreach(var addrerr in err.AllAddress)
+                                            {
+                                                //无用的数据了
+                                                dicNodeGuid.TryRemove(addrerr, out tmp);
+                                            }
                                         }
                                         err.NumAll = 0;
-                                        Console.WriteLine("异常处理节点没有结果了,{0}>>{1}>>", kv.Key, addr.SubAddresses.Count);
+                                       // Console.WriteLine("异常处理节点没有结果了,{0}>>{1}>>", kv.Key, addr.SubAddresses.Count);
                                         continue;
                                     }
-                                    Console.WriteLine("准备处理的异常全部发送,{0}>>{1}", kv.Key,err.NumAll);
+                                  //  Console.WriteLine("准备处理的异常全部发送,{0}>>{1}", kv.Key,err.NumAll);
                                     cur = err.AllAddress;//全尝试
                                     err.NumAll++;
                                 }
-                                else
-                                {
-                                    Console.WriteLine("找到待发送地址,{0}", cur.Count);
-                                }
-                                //发送需要发送的节点
+                                //else
+                                //{
+                                //    Console.WriteLine("找到待发送地址,{0}", cur.Count);
+                                //}
+                                
                                 foreach (var right in cur)
                                 {
-                                    Console.WriteLine("异常发送,{0}", right);
+                                   // Console.WriteLine("异常发送,{0}", right);
                                     ret = DataTransfer.Send(p.Topic, kv.Value, right);
                                     if (ret != null && ret.Length > 0)
                                     {
                                         //收到回复该地址正常
                                         err.ErrorAddress.Add(err.Address);
                                         err.Address = right;
+                                        dicNodeGuid[kv.Key] = err.NodeFlage;//将当前处理正常的地址保存
                                         Console.WriteLine("成功处理异常，" + right);
                                         break;
                                     }
@@ -307,19 +326,15 @@ namespace MiniMsg
                     {
                         return;
                     }
-                 
                 }
                 SubMgr.Instance.OpenChanel();//初始化，启动数据接收订阅
                                              //第一次本节点发布
-                                         
-                                          
-             
                 var lstLocal = topicBroadcast.PgmPub(topic);
                
                 //将新发布节点加入本地
                 foreach (var p in lstLocal)
                 {
-                    Console.WriteLine("加入订阅地址:"+p);
+                    Console.WriteLine("本节点加入发布地址:"+p);
                     PubTable.Instance.Add(topic, p);
                 }
                 sub.Wait();
@@ -330,18 +345,15 @@ namespace MiniMsg
                     //通知地址后不会有消息回复，会增加消息交互量
                     for (int i = 0; i < 10; i++)
                     {
-                        Thread.Sleep(100);
+                        Thread.Sleep(100);//等待100ms取订阅地址
                         //再次检查是否有订阅
                         lst = SubTable.Instance.GetAddress(topic);
                         if (lst != null&&lst.Count>0)
                         {
-                          
                             foreach (var p in lst)
                             {
-                               
                                 DataTransfer.Send(topic, msg, p);
                             }
-
                             break;
                         }
                     }
