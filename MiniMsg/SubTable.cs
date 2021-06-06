@@ -32,7 +32,7 @@ namespace MiniMsg
         public bool Add(string topic, string address,string node)
         {
             // string key = "";
-            Console.WriteLine("接收到注册信息，主题:{0},地址:{1}", topic, address);
+            Console.WriteLine("接收到注册信息，主题:{0},地址:{1},标识:{2}", topic, address,node);
             foreach(var p in topicPub.Keys)
             {
                 if(p.CompareTo(topic)==0)
@@ -53,11 +53,12 @@ namespace MiniMsg
                     else
                     {
                         lst.LstAddress.Add(address);
+                        //同一节点加入
                         var sub= lst.SubAddresses.Find(X => X.NodeFlage == node);
                         if (sub == null)
                         {
                             // 没有此节点
-                            var p = new SubAddress() { Address = address, AllAddress = new List<string>(), ErrorAddress = new List<string>() };
+                            var p = new SubAddress() { Address = address, AllAddress = new List<string>(), ErrorAddress = new List<string>(), NodeFlage=node };
                             p.AllAddress.Add(address);
                             lst.SubAddresses.Add(p);
                         }

@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,71 +12,55 @@ namespace ConsoleApp1
 {
     class Program
     {
-        static string ipcdir="";
+        //static string ipcdir="";
 
         static void Main(string[] args)
         {
             //ipcdir = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
             //ipcdir = Path.Combine(ipcdir, "minimsg.ipc");
             // Test();
-            // LocalNode.LocalAddress = "192.168.0.129";
-            //  LocalNode.LocalPort = 6667;
-            Console.WriteLine(ipcdir);
+             // LocalNode.LocalAddress = "192.168.0.152";
+             // LocalNode.LocalPort = 6667;
+           
             Console.WriteLine(System.Environment.Is64BitProcess);
+           // IpcNativeMethods.MapChannel("jinyu");
             Task.Run(() => {
                 //  SendPgm();
                 //  PgmClient();
                 // Thread.Sleep(5000);
-                //try
-                //{
-                //    Sub();
-                //}
-                //catch(Exception ex)
-                //{
-                //    Console.WriteLine(ex);
-                //}
+                try
+                {
+                    Sub();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex);
+                }
 
-                //   Rec();
-                //  ZmqSend();
-                //TopicIpc sub = new TopicIpc();
-
-                //sub.ReceiveTopic += Sub_ReceiveTopic;
-                //sub.ZmqIpcSub();
-                //
-                //TopicIpc sub1 = new TopicIpc();
-                //sub1.ReceiveTopic += Sub1_ReceiveTopic;
-                //sub1.ZmqIpcSubStatic();
-                ZmqIpcPub();
+                // ZmqIpcTcpRec();
+                // IpcSendNative();
+             //   IpcSendNameNative();
             });
             Task.Run(() => {
+                // IpcRecNative();
+                // IpcRecNameNative();
+                // ZmqIpcSub();
+                // RecPgm();
 
-                ZmqIpcSub();
-               // RecPgm();
-               // Random random = new Random();
-               //string pre= random.Next()+"_";
-               // Console.WriteLine(pre);
-               // TopicIpc pub= new TopicIpc();
-               // while (true)
-               // {
-               //     //pub.ZmqIpcPub(pre + DateTime.Now.ToString());
-               //      pub.ZmqIpcPubStatic(pre + DateTime.Now.ToString());
-               //     Thread.Sleep(1000);
-               //     //TopicIpc pub1 = new TopicIpc();
-               //     //pub1.ZmqIpcPub(pre + DateTime.Now.ToString()+"static");
-               // }
+
                 // ZmqIpcSend();
                 // PgmServer();
-                //try
-                //{
-                //    //  PgmServer();
-                //    // Send();
-                //    Pub();
-                //    //   ZmqRec();
-                //}
-                //catch(Exception ex)
-                //{
-                //    Console.WriteLine(ex);
-                //}
+                // ZmqIpcTcpSend();
+                try
+                {
+
+                    Pub();
+                   
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex);
+                }
             });
 
             Console.Read();
@@ -112,12 +97,12 @@ namespace ConsoleApp1
 
         #region 通信测试
 
-        static void Send()
+        static void NNgSend()
         {
             while(true)
             {
                 DataNative dataNative = new DataNative();
-                dataNative.Send("tcp://192.168.0.108:6667", System.Text.UTF8Encoding.UTF8.GetBytes(DateTime.Now.ToString()));
+                dataNative.Send("tcp://127.0.0.1:6667", System.Text.UTF8Encoding.UTF8.GetBytes(DateTime.Now.ToString()));
                 Thread.Sleep(1000);
             }
           
@@ -125,7 +110,7 @@ namespace ConsoleApp1
         static void Rec()
         {
             DataNative dataNative = new DataNative();
-            dataNative.Receive("tcp://*:6667");
+            dataNative.Receive("tcp://127.0.0.1:6667");
             Task.Run(() => {
                 while (true)
                 {
@@ -133,8 +118,39 @@ namespace ConsoleApp1
                     Console.WriteLine(UTF8Encoding.UTF8.GetString(ss)+"_1");
                 }
             });
-          
-            
+        }
+        static void NNgRec()
+        {
+            for (int i = 0; i < 3; i++)
+            {
+                DataNative dataNative = new DataNative();
+                dataNative.Receive("tcp://*:6667");
+                int num = i;
+                Task.Run(() =>
+                {
+                    int count = 0;
+                     while (true)
+                    {
+                        var ss = dataNative.GetData();
+                        Console.WriteLine("{0}线程,{1}",num,UTF8Encoding.UTF8.GetString(ss));
+                        count++;
+                        if(count>10)
+                        {
+                            break;
+                        }
+                       
+                    }
+                    //try
+                    //{
+                    //    dataNative.Close();
+                    //}
+                    //catch(Exception ex)
+                    //{
+                    //    Console.WriteLine(ex);
+                    //}
+                    Console.WriteLine("退出{0}", num);
+                });
+            }
         }
 
         static void SendPgm()
@@ -257,7 +273,7 @@ namespace ConsoleApp1
                 using (var requester = new ZSocket(ZSocketType.REP))
                 {
                     requester.Bind("tcp://127.0.0.1:8080");
-                   
+                    requester.SetOption(ZSocketOption.LINGER, -1);
                     while(true)
                     {
                       var tsp=  requester.ReceiveFrame();
@@ -352,7 +368,7 @@ namespace ConsoleApp1
             Console.WriteLine("主题:{0},内容:{1}", arg1, Encoding.Default.GetString(arg2));
         }
 
-        static ZSocket requester = new ZSocket(ZSocketType.XPUB);
+       
         public static void ZmqIpcPub()
         {
             TopicZmqIpc ipc = new TopicZmqIpc();
@@ -366,8 +382,88 @@ namespace ConsoleApp1
             }
         }
 
+        public static void ZmqIpcTcpRec()
+        {
+
+            for (int i = 0; i < 3; i++)
+            {
+                int num = i;
+                Task.Run(() =>
+                {
+                    TopicZmqIpcTcp ipcTcp = new TopicZmqIpcTcp();
+                    ipcTcp.Rec(num);
+                });
+            }
+        }
+        public static void ZmqIpcTcpSend()
+        {
+            TopicZmqIpcTcp ipcTcp = new TopicZmqIpcTcp();
+            while(true)
+            {
+                ipcTcp.Send(DateTime.Now.ToString());
+                Thread.Sleep(1000);
+            }
+        }
+
+        public static  void IpcSendNative()
+        {
+            Random random = new Random();
+            string pre = random.Next().ToString()+"_年月";
+
+            while (true)
+            {
+
+                var buf = Encoding.Default.GetBytes(pre + DateTime.Now.ToString());
+                IpcNativeMethods.Send(buf,buf.Length);
+            
+                Thread.Sleep(6000);
+            }
+        }
+
+        public static void IpcRecNative()
+        {
+           
+
+            while (true)
+            {
+
+                int num = 0;
+               var buf =IpcNativeMethods.Rec(ref num);
+                byte[] dst = new byte[num];
+                Marshal.Copy(buf, dst, 0, num);
+                Console.WriteLine(Encoding.Default.GetString(dst));
+            }
+        }
+
+        public static void IpcSendNameNative()
+        {
+            Random random = new Random();
+            string pre = random.Next().ToString() + "靳雨";
+
+            while (true)
+            {
+
+                var buf = Encoding.Default.GetBytes(pre + DateTime.Now.ToString());
+                IpcNativeMethods.SendName("jinyu",buf, buf.Length);
+
+                Thread.Sleep(6000);
+            }
+        }
+
+        public static void IpcRecNameNative()
+        {
 
 
+            while (true)
+            {
+
+                int num = 0;
+                var buf = IpcNativeMethods.RecName("jinyu",ref num);
+                byte[] dst = new byte[num];
+                Marshal.Copy(buf, dst, 0, num);
+                Console.WriteLine(Encoding.Default.GetString(dst));
+            }
+        }
         #endregion
 
 
@@ -392,7 +488,7 @@ namespace ConsoleApp1
         public static void Sub()
         {
             MiniMsgTopic miniMsgTopic = new MiniMsgTopic();
-            miniMsgTopic.Subscribe("leveltop");
+            miniMsgTopic.Subscribe("rrtop");
             miniMsgTopic.OnCall += MiniMsgTopic_OnCall;
 
         }

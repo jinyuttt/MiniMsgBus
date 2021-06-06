@@ -12,7 +12,7 @@ namespace MiniMsg
     /// </summary>
     public class TopicZmqPgm
     {
-        public string MultAddress { get; set; } = "239.192.1.1:5555";
+        public string MultAddress { get; set; } = "239.192.1.1:4113";
         public event Action<string,byte[]> ReceiveTopic;
 
         readonly ZSocket subSocket = new ZSocket(ZSocketType.SUB);
@@ -79,6 +79,7 @@ namespace MiniMsg
                     }
 
                 }
+                subSocket.SetOption(ZSocketOption.LINGER, 1000);
                 isSubBind = false;
             }
             //
@@ -117,6 +118,7 @@ namespace MiniMsg
                         pubSocket.Bind(addr);
                     }
                 }
+                pubSocket.SetOption(ZSocketOption.LINGER, 1000);
                 isBind = false;
             }
             using (var message = new ZMessage())

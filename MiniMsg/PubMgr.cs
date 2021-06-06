@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Concurrent;
@@ -55,14 +54,16 @@ namespace MiniMsg
                       
                        //将数据再次发送
                       var ret= DataTransfer.Send(p.Topic, kv.Value,kv.Key);
-                        if (ret == null|| ret.Length == 0)
+                       if (ret == null || ret.Length == 0)
                        {
+                           Console.WriteLine("准备发送的异常地址," + kv.Key);
                            //还是失败，判断是否是多网卡绑定订阅地址
-                           var err = addr.SubAddresses.Find(X => X.Address.CompareTo(kv.Key)==0);
+                           var err = addr.SubAddresses.Find(X => X.Address.CompareTo(kv.Key) == 0);
                            if (err != null)
                            {
+                               Console.WriteLine("找到异常处理的guid," + err.NodeFlage);
                                //返回判断非异常的地址
-                               var cur=  err.AllAddress.FindAll(X => !err.ErrorAddress.Contains(X));
+                               var cur = err.AllAddress.FindAll(X => !err.ErrorAddress.Contains(X));
                                if (cur.Count == 0)
                                {
                                    //已经没有正确地址,节点所有地址都发送10次后移除节点，任务订阅节点异常
@@ -79,11 +80,11 @@ namespace MiniMsg
                                    err.NumAll++;
                                }
                                //发送需要发送的节点
-                               foreach(var  right in cur)
+                               foreach (var right in cur)
                                {
                                    //Console.WriteLine("异常处理发送，"+right);
-                                   ret = DataTransfer.Send(p.Topic, kv.Value,right);
-                                   if (ret!=null&&ret.Length > 0)
+                                   ret = DataTransfer.Send(p.Topic, kv.Value, right);
+                                   if (ret != null && ret.Length > 0)
                                    {
                                        //收到回复该地址正常
                                        err.ErrorAddress.Add(err.Address);
@@ -92,7 +93,7 @@ namespace MiniMsg
                                        break;
                                    }
                                }
-                              
+
                            }
                        }
                      
@@ -197,31 +198,41 @@ namespace MiniMsg
                         var ret = DataTransfer.Send(p.Topic, kv.Value, kv.Key);
                         if (ret == null || ret.Length == 0)
                         {
+                         
                             //还是失败，判断是否是多网卡绑定订阅地址
                             var err = addr.SubAddresses.Find(X => X.Address.CompareTo(kv.Key) == 0);
                             if (err != null)
                             {
-                                //返回判断非异常的地址
+                                //返回判断非异常的地址，同一节点
+                                Console.WriteLine("准备处理的异常,{0}>>{1}" ,kv.Key,err.NodeFlage);
                                 var cur = err.AllAddress.FindAll(X => !err.ErrorAddress.Contains(X));
                                 if (cur.Count == 0)
                                 {
-                                    //已经没有正确地址,节点所有地址都发送10次后移除节点，任务订阅节点异常
-                                    if (err.NumAll > 10)
+                                    //已经没有正确地址,节点所有地址都发送2次后移除节点，任务订阅节点异常
+                                    //这里依托数据发送2次
+                                    if (err.NumAll > 1)
                                     {
                                         lock (addr)
                                         {
                                             addr.SubAddresses.Remove(err);
                                             addr.LstAddress.RemoveAll(X => err.AllAddress.Contains(X));
                                         }
+                                        err.NumAll = 0;
+                                        Console.WriteLine("异常处理节点没有结果了,{0}>>{1}>>", kv.Key, addr.SubAddresses.Count);
                                         continue;
                                     }
+                                    Console.WriteLine("准备处理的异常全部发送,{0}>>{1}", kv.Key,err.NumAll);
                                     cur = err.AllAddress;//全尝试
                                     err.NumAll++;
+                                }
+                                else
+                                {
+                                    Console.WriteLine("找到待发送地址,{0}", cur.Count);
                                 }
                                 //发送需要发送的节点
                                 foreach (var right in cur)
                                 {
-                                    //Console.WriteLine("异常处理发送，"+right);
+                                    Console.WriteLine("异常发送,{0}", right);
                                     ret = DataTransfer.Send(p.Topic, kv.Value, right);
                                     if (ret != null && ret.Length > 0)
                                     {
@@ -231,9 +242,15 @@ namespace MiniMsg
                                         Console.WriteLine("成功处理异常，" + right);
                                         break;
                                     }
+                                    else
+                                    {
+                                        //节点异常地址加入
+                                        err.ErrorAddress.Add(right);
+                                    }
                                 }
 
                             }
+                          
                         }
 
                     }
@@ -273,6 +290,7 @@ namespace MiniMsg
                 if (dic.Count > 0)
                 {
                     //存入异常数据，等待再次处理
+                   
                     errorRecords.Add(new Records() { Record = dic, Topic = topic });
                 }
             }
@@ -281,38 +299,33 @@ namespace MiniMsg
 
                 //本地没有订阅节点
                 var lstPub = PubTable.Instance.GetAddress(topic);//从全局发布表中查询
-                if (lstPub != null && lstPub.Contains(LocalNode.LocalAddress) && !LocalNode.LocalAddress.Contains("*"))
+                if (lstPub != null)
                 {
                     //本节点已经发布过地址就丢数据,说明没有节点订阅这个主题
-                    return;
-                }
-                if (LocalNode.LocalAddress.Contains("*") && lstPub != null)
-                {
-                    //本节点绑定了所有网卡，找到本节点所有网卡地址
-                    var pubs = LocalNode.LocalAddressFamily.Where(X => lstPub.Contains(X.IPV4)).ToList();
-
-                    if (pubs.Count > 0)
+                    var find = lstPub.Find(X => TopicBroadcast.lstNodeAddress.Contains(X));
+                    if (find != null)
                     {
-                        //已经发布过地址就丢数据,说明没有节点订阅这个主题
                         return;
                     }
+                 
                 }
-
                 SubMgr.Instance.OpenChanel();//初始化，启动数据接收订阅
                                              //第一次本节点发布
-                                             //TopicPgm1 pgm = new TopicPgm1();
-                                             //TopicZmqIpc ipc = new TopicZmqIpc();
-                
+                                         
+                                          
+             
                 var lstLocal = topicBroadcast.PgmPub(topic);
                
                 //将新发布节点加入本地
                 foreach (var p in lstLocal)
                 {
+                    Console.WriteLine("加入订阅地址:"+p);
                     PubTable.Instance.Add(topic, p);
                 }
                 sub.Wait();
                 Task.Run(() =>
                 {
+                  
                     //等待20次，每次100ms,1秒了完成发布，否则数据丢失；因为地址通知考虑没有回复
                     //通知地址后不会有消息回复，会增加消息交互量
                     for (int i = 0; i < 10; i++)

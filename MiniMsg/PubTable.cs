@@ -25,7 +25,7 @@ namespace MiniMsg
         /// 添加主题和地址
         /// </summary>
         /// <param name="topic">主题</param>
-        /// <param name="address">发布地址</param>
+        /// <param name="address">发布地址:包括IP，端口，协议</param>
         /// <returns></returns>
         public bool Add(string topic, string address)
         {
@@ -75,7 +75,7 @@ namespace MiniMsg
                     break;
                 }
             }
-         
+           // Console.WriteLine("topicPub:"+ topicPub.Count);
             topicPub.TryGetValue(topic,out lst);
            
             return lst;

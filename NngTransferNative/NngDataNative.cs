@@ -96,9 +96,25 @@ namespace NngTransferNative
         {
             try
             {
-                using (var reqSocket = GetFactory().RequesterOpen().ThenDial(address).Unwrap())
+
+                //using (var reqSocket = GetFactory().RequesterOpen().Then(socket => { socket.SetOpt("NN_REQ_RESEND_IVL", 200);return  socket.Dial(address); }).Unwrap())
+                //{
+
+                //    reqSocket.SetOpt(Defines.NNG_OPT_SENDTIMEO, new nng_duration { TimeMs = 100 });
+                //    reqSocket.SetOpt(Defines.NNG_OPT_RECVTIMEO, new nng_duration { TimeMs = 200 });
+                //   // reqSocket.SetOpt("NN_REQ_RESEND_IVL", new nng_duration { TimeMs = 200 });
+
+                //    var msg = factory.CreateMessage();
+                //    msg.Append(bytes);
+                //    reqSocket.SendMsg(msg).Unwrap();
+                //    return reqSocket.RecvMsg().Unwrap().AsSpan().ToArray();
+                //}
+
+
+                using (var reqSocket = GetFactory().RequesterOpen().ThenDial(address, Defines.NngFlag.NNG_FLAG_NONBLOCK).Unwrap())
                 {
-                    reqSocket.SetOpt(nng.Native.Defines.NNG_OPT_SENDTIMEO, new nng_duration { TimeMs = 100 });
+                    reqSocket.SetOpt(Defines.NNG_OPT_SENDTIMEO, new nng_duration { TimeMs = 1000 });
+                    reqSocket.SetOpt(Defines.NNG_OPT_RECVTIMEO, new nng_duration { TimeMs = 2000 });
                     var msg = factory.CreateMessage();
                     msg.Append(bytes);
                     reqSocket.SendMsg(msg).Unwrap();
@@ -129,8 +145,10 @@ namespace NngTransferNative
         /// <returns>真实地址</returns>
         public  string  Receive(string address)
         {
+           
             var repSocket = GetFactory().ReplierOpen().ThenListenAs(out var listener, address).Unwrap();
             var str = GetDialUrl(listener, address);
+            repSocket.SetOpt("NN_RCVMAXSIZE", -1);
             repLisSocket = repSocket;
             Thread thread = new Thread(() =>
             {

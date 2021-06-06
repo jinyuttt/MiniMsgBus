@@ -86,57 +86,16 @@ namespace MiniMsg
           
             topicBroadcast.ReceiveTopic += TopicBroadcast_ReceiveTopic;
             topicBroadcast.TopicSub();
+            //
             topicBroadcast.PgmPub("Global");
             Thread.Sleep(100);
-            //  TopicPgm1 pgm = new TopicPgm1();
-            //  TopicZmqIpc ipc = new TopicZmqIpc();
-            //  pgm.ReceiveTopic += Pgm_ReceiveTopic;
-            ////  ipc.ReceiveTopic += Ipc_ReceiveTopic; ;
-            //  Thread pgmThread = new Thread(() =>
-            //  {
-            //      pgm.PgmSub();
-            //  });
-            //  pgmThread.IsBackground = true;
-            //  pgmThread.Name = "pgmsub";
-            //  pgmThread.Start();
-            //  //
-            //  Thread ipcThread = new Thread(() =>
-            //  {
-            //      //ipc.ZmqIpcSub();
-            //  });
-            //  ipcThread.IsBackground = true;
-            //  ipcThread.Name = "ipcsub";
-            //  ipcThread.Start();
-            //  pgm.PgmPub("Global");//内部主题，更新一次发布地址
-            // // ipc.ZmqIpcPubStatic("Global");
-            //  Thread.Sleep(100);
-
-
-
 
         }
 
         private void TopicBroadcast_ReceiveTopic(string topic,string address)
         {
            
-            ////保存到全局发布列表
-            //if (topic == "Global")
-            //{
-            //    //如果接收到的是Global信息，则把本节点保持的所有发布节点发送出去，让新加入的节点获取
-            //    //发布地址
-             
-            //    var dic = PubTable.Instance.GetPairs();
-            //    Console.WriteLine("接收到Global主题，通知一次全局主题地址");
-            //    foreach (var kv in dic)
-            //    {
-            //        foreach (var p in kv.Value)
-            //        {
-            //            topicBroadcast.PgmUpdate(kv.Key, p);
-            //        }
-            //    }
-            //    return;
-            //}
-
+           
             //将新发布节点加入本地
             PubTable.Instance.Add(topic, address);
             Console.WriteLine("新加入的发布地址，主题:{0} 地址:{1}", topic, address);
@@ -164,7 +123,7 @@ namespace MiniMsg
                     if (p.Flage == 1)
                     {
                         //订阅地址加入
-                        SubTable.Instance.Add(p.Topic, UTF8Encoding.UTF8.GetString(p.Msg),p.MsgNode);
+                        SubTable.Instance.Add(p.Topic.Trim(), UTF8Encoding.UTF8.GetString(p.Msg).Trim(),p.MsgNode.Trim());
                     }
                     else
                     {
@@ -213,8 +172,7 @@ namespace MiniMsg
             string tmp = "";
             if (string.IsNullOrEmpty(LocalNode.LocalAddress))
             {
-             
-                 LocalNode.GetNetworkInterface();
+
                 if (string.IsNullOrEmpty(LocalNode.protocol))
                 {
                     tmp = string.Format("{0}:{1}", "*", LocalNode.LocalPort);
@@ -243,8 +201,10 @@ namespace MiniMsg
             LocalNode.LocalAddress = items.Item2;
             LocalNode.LocalPort = int.Parse(items.Item3);
             LocalNode.protocol = items.Item1;
-            Console.WriteLine("LocalNode.Netprotocol:" + LocalNode.LocalAddress);
-            Thread rec = new Thread(() =>
+            Console.WriteLine("LocalNode.LocalAddress:" + LocalNode.LocalAddress);
+            Console.WriteLine("LocalNode.port:" + LocalNode.LocalPort);
+            topicBroadcast.GetLocalAddress();//初始化一次地址
+             Thread rec = new Thread(() =>
               {
                   //接收数据
                   while (true)
@@ -330,11 +290,7 @@ namespace MiniMsg
         private void Pgm_ReceiveTopic(string obj)
         {
             Console.WriteLine("recvice  {0}", obj);
-            Task.Run(() =>
-            {
-
-               // ipc_publish.ZmqIpcPubStatic(obj + LocalNode.GUID);
-            });
+           
             string[] tmp = obj.Split('|');//主题与发布地址用|分割
             StringBuilder builder = new StringBuilder();
             for(int i=0;i<tmp.Length-1;i++)
@@ -371,9 +327,6 @@ namespace MiniMsg
         {
              Console.WriteLine("发送订阅");
             var lst = PubTable.Instance.GetAddress(topic);
-          
-            
-            string tmp = "";
             if(lst==null||lst.Count==0)
             {
                 //没有发布地址，放入本地节点信息
@@ -384,23 +337,17 @@ namespace MiniMsg
             foreach (var  pub in lst)
             {
 
-
                 //这里是因为InitSub方法先初始化
-
                 //绑定了所有地址，需要将明确的地址发送出去订阅
                 //取出真实的端口
-
                 foreach (var p in TopicBroadcast.lstNodeAddress)
                 {
 
-
                     DataTransfer.Send(topic, Encoding.UTF8.GetBytes(p), pub, 1);
-                    Console.WriteLine("注册 topic: {0} addr:{1}，local:{2}", topic, pub, tmp);
+                    Console.WriteLine("注册 topic: {0} addr:{1}", topic, pub);
 
                 }
-                
-               
-                
+
             }
 
             //保持本地订阅实例，用于数据回传

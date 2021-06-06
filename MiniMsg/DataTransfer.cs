@@ -30,7 +30,7 @@ namespace MiniMsg
 
                 var ret = native.Send(address, v);
 
-                pool.Return(v, true);
+               // pool.Return(v, true);
                 return ret;
             }
             catch(Exception ex)

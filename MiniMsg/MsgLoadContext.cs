@@ -18,6 +18,7 @@ namespace MiniMsg
 
         protected override IntPtr LoadUnmanagedDll(string unmanagedDllName)
         {
+            Console.WriteLine(unmanagedDllName);
             //if (unmanagedDllName == "udt")
             //{
 #if NETSTANDARD2_0
