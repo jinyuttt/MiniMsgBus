@@ -488,7 +488,7 @@ namespace ConsoleApp1
         public static void Sub()
         {
             MiniMsgTopic miniMsgTopic = new MiniMsgTopic();
-            miniMsgTopic.Subscribe("maintop");
+            miniMsgTopic.Subscribe("rrtop");
             miniMsgTopic.OnCall += MiniMsgTopic_OnCall;
 
         }
@@ -500,7 +500,7 @@ namespace ConsoleApp1
             while (true)
             {
                  tmp ="rr，"+ DateTime.Now.ToString();
-                miniMsgTopic.Publish("rrtop", Encoding.UTF8.GetBytes(tmp));
+                miniMsgTopic.Publish("maintop", Encoding.UTF8.GetBytes(tmp));
                 //Console.WriteLine(tmp);
                 Thread.Sleep(1000);
             }
