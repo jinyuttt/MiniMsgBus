@@ -1,0 +1,13 @@
+// stdcall & cdecl
+#if defined(_MSC_VER) || defined(_WIN32) || defined(_WIN64)
+#define TCE_API __stdcall
+// TCELOGGER_DLL_EXPORTS
+#ifdef _EXPORT_LIBXLCRACK_DLL_
+#define EXPORT_LIBXLCRACK __declspec(dllexport)
+#else
+#define EXPORT_LIBXLCRACK __declspec(dllimport)
+#endif
+#else
+#define TCE_API
+#define EXPORT_LIBXLCRACK 
+#endif
