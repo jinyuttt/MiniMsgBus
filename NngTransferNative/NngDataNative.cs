@@ -113,7 +113,7 @@ namespace NngTransferNative
 
                 using (var reqSocket = GetFactory().RequesterOpen().ThenDial(address, Defines.NngFlag.NNG_FLAG_NONBLOCK).Unwrap())
                 {
-                    reqSocket.SetOpt(Defines.NNG_OPT_SENDTIMEO, new nng_duration { TimeMs = 1000 });
+                    reqSocket.SetOpt(Defines.NNG_OPT_SENDTIMEO, new nng_duration { TimeMs = 200 });
                     reqSocket.SetOpt(Defines.NNG_OPT_RECVTIMEO, new nng_duration { TimeMs = 2000 });
                     var msg = factory.CreateMessage();
                     msg.Append(bytes);
