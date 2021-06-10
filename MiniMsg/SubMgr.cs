@@ -315,6 +315,28 @@ namespace MiniMsg
                 //本地已经订阅的主题发送订阅信息
                 this.SendSub(topic, ov as MiniMsgTopic);
             }
+            //else if(dicSubObj.ContainsKey(topic))
+            //{
+            //    //本地已经存在订阅
+            //    this.SendSub(topic, null);
+            //}
+            else
+            {
+                string cur = "";
+                foreach (var key in dicSubObj.Keys)
+                {
+                    if (key.CompareTo(topic) == 0)
+                    {
+                        cur = key;
+                        break;
+                    }
+                }
+                if (!string.IsNullOrEmpty(cur))
+                {
+                    this.SendSub(cur, null);
+                }
+
+            }
 
         }
 
@@ -349,7 +371,11 @@ namespace MiniMsg
                 }
 
             }
-
+            if(sub==null)
+            {
+                //没有订阅或者已经加入订阅
+                return;
+            }
             //保持本地订阅实例，用于数据回传
             if(dicSubObj.TryGetValue(topic,out List<MiniMsgTopic> lstTopic))
             {

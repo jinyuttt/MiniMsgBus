@@ -297,7 +297,7 @@ namespace MiniMsg
                 Dictionary<string, byte[]> dic = new Dictionary<string, byte[]>();
                 foreach (var p in lst)
                 {
-                  
+                 
                     var ret = DataTransfer.Send(topic, msg, p, 0, Interlocked.Increment(ref msgid));
                     if (ret==null||ret.Length == 0)
                     {
@@ -315,7 +315,7 @@ namespace MiniMsg
             }
             else
             {
-
+               
                 //本地没有订阅节点
                 var lstPub = PubTable.Instance.GetAddress(topic);//从全局发布表中查询
                 if (lstPub != null)

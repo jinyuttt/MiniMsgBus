@@ -502,7 +502,7 @@ namespace ConsoleApp1
                  tmp ="rr，"+ DateTime.Now.ToString();
                 miniMsgTopic.Publish("maintop", Encoding.UTF8.GetBytes(tmp));
                 //Console.WriteLine(tmp);
-                Thread.Sleep(1000);
+                Thread.Sleep(2000);
             }
         }
         private static void MiniMsgTopic_OnCall(string arg1, byte[] arg2)
