@@ -27,10 +27,7 @@ namespace MiniMsg
             try
             {
                 DataNative native = new DataNative();
-
                 var ret = native.Send(address, v);
-
-               // pool.Return(v, true);
                 return ret;
             }
             catch(Exception ex)

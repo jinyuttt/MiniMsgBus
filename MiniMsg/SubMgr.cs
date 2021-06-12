@@ -366,7 +366,7 @@ namespace MiniMsg
                 {
 
                     DataTransfer.Send(topic, Encoding.UTF8.GetBytes(p), pub, 1);
-                    Console.WriteLine("注册 topic: {0} addr:{1}", topic, pub);
+                    Console.WriteLine("订阅 topic: {0} addr:{1}", topic, pub);
 
                 }
 
