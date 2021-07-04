@@ -349,19 +349,19 @@ namespace ConsoleApp1
             }
         }
 
-        public static void ZmqIpcSub()
-        {
-            try
-            {
-                TopicZmqIpc ipc = new TopicZmqIpc();
-                ipc.ReceiveTopic += Ipc_ReceiveTopic;
-                ipc.ZmqIpcSub("");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex);
-            }
-        }
+        //public static void ZmqIpcSub()
+        //{
+        //    try
+        //    {
+        //        TopicZmqIpc ipc = new TopicZmqIpc();
+        //        ipc.ReceiveTopic += Ipc_ReceiveTopic;
+        //        ipc.ZmqIpcSub("");
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Console.WriteLine(ex);
+        //    }
+        //}
 
         private static void Ipc_ReceiveTopic(string arg1, byte[] arg2)
         {
@@ -369,41 +369,41 @@ namespace ConsoleApp1
         }
 
        
-        public static void ZmqIpcPub()
-        {
-            TopicZmqIpc ipc = new TopicZmqIpc();
-            Random random = new Random();
-            string pre = random.Next().ToString() + "_";
-            Console.WriteLine(pre);
-            while (true)
-            {
-                ipc.ZmqIpcPub("ipc",Encoding.Default.GetBytes(pre+DateTime.Now.ToString()));
-                Thread.Sleep(1000);
-            }
-        }
+        //public static void ZmqIpcPub()
+        //{
+        //    TopicZmqIpc ipc = new TopicZmqIpc();
+        //    Random random = new Random();
+        //    string pre = random.Next().ToString() + "_";
+        //    Console.WriteLine(pre);
+        //    while (true)
+        //    {
+        //        ipc.ZmqIpcPub("ipc",Encoding.Default.GetBytes(pre+DateTime.Now.ToString()));
+        //        Thread.Sleep(1000);
+        //    }
+        //}
 
-        public static void ZmqIpcTcpRec()
-        {
+        //public static void ZmqIpcTcpRec()
+        //{
 
-            for (int i = 0; i < 3; i++)
-            {
-                int num = i;
-                Task.Run(() =>
-                {
-                    TopicZmqIpcTcp ipcTcp = new TopicZmqIpcTcp();
-                    ipcTcp.Rec(num);
-                });
-            }
-        }
-        public static void ZmqIpcTcpSend()
-        {
-            TopicZmqIpcTcp ipcTcp = new TopicZmqIpcTcp();
-            while(true)
-            {
-                ipcTcp.Send(DateTime.Now.ToString());
-                Thread.Sleep(1000);
-            }
-        }
+        //    for (int i = 0; i < 3; i++)
+        //    {
+        //        int num = i;
+        //        Task.Run(() =>
+        //        {
+        //            TopicZmqIpcTcp ipcTcp = new TopicZmqIpcTcp();
+        //            ipcTcp.Rec(num);
+        //        });
+        //    }
+        //}
+        //public static void ZmqIpcTcpSend()
+        //{
+        //    TopicZmqIpcTcp ipcTcp = new TopicZmqIpcTcp();
+        //    while(true)
+        //    {
+        //        ipcTcp.Send(DateTime.Now.ToString());
+        //        Thread.Sleep(1000);
+        //    }
+        //}
 
         public static  void IpcSendNative()
         {

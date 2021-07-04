@@ -8,7 +8,7 @@ namespace MiniMsg
 {
 
     /// <summary>
-    /// 进程通信
+    /// 进程通信 暂不使用
     /// </summary>
     public class TopicZmqIpc
     {

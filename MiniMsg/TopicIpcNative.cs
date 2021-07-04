@@ -7,6 +7,10 @@ using System.Threading;
 
 namespace MiniMsg
 {
+
+    /// <summary>
+    /// 内存共享
+    /// </summary>
     public class TopicIpcNative
     {
         public event Action<string, byte[]> ReceiveTopic;
@@ -14,6 +18,10 @@ namespace MiniMsg
        
         private object lock_obj=new object();
         ArrayPool<byte> pool = ArrayPool<byte>.Shared;
+
+       /// <summary>
+       /// 处理数据
+       /// </summary>
         private void ReceiveData()
         {
             if (isStart)
@@ -61,6 +69,9 @@ namespace MiniMsg
             recTopic.Start();
         }
        
+        /// <summary>
+        /// 启动接收数据
+        /// </summary>
         public void IpcRecv()
         {
             try
@@ -83,7 +94,11 @@ namespace MiniMsg
         }
 
 
-
+        /// <summary>
+        /// 发布数据
+        /// </summary>
+        /// <param name="topic"></param>
+        /// <param name="buf"></param>
         public void IpcSend(string topic, byte[] buf)
         {
             try

@@ -9,6 +9,9 @@ namespace MiniMsg
         public const string IpcDll = "ipc";
     }
 
+    /// <summary>
+    /// 本地封装类
+    /// </summary>
     public  class IpcNativeMethods
     {
         [DllImport(IpcDll)]

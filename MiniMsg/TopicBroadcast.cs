@@ -5,6 +5,10 @@ using System.Text;
 
 namespace MiniMsg
 {
+
+    /// <summary>
+    /// 数据传输广播
+    /// </summary>
     internal class TopicBroadcast
     {
           TopicIpcNative ipc = new TopicIpcNative();
