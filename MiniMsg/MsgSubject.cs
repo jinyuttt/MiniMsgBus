@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace MiniMsg
 {
@@ -10,7 +6,7 @@ namespace MiniMsg
     {
        
         private readonly IList<Observer> observers = new List<Observer>();
-        public string SubjectState { get; set; }
+        public byte[] SubjectState { get; set; }
 
         public void Add(Observer observer)
         {

@@ -17,7 +17,7 @@ namespace MiniMsg
         bool isStart = false;
        
         private object lock_obj=new object();
-        ArrayPool<byte> pool = ArrayPool<byte>.Shared;
+        readonly ArrayPool<byte> pool = ArrayPool<byte>.Shared;
 
        /// <summary>
        /// 处理数据

@@ -13,7 +13,7 @@ namespace MiniMsg
         //删除观察者 不送零食的秘书小妹就不通知了
         void Remove(Observer observer);
         //主题状态
-        string SubjectState { get; set; }
+        byte[] SubjectState { get; set; }
         //通知方法
         void Notify();
     }

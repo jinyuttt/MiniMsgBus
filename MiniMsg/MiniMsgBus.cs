@@ -1,13 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MiniMsg
 {
-  public  class MiniMsgBus
+    public  interface IMiniMsgBus
     {
-
+        /// <summary>
+        /// 订阅回调
+        /// </summary>
+        public event Action<string, byte[]> OnCall;
+        public void Publish(string topic, byte[] bytes);
+        public void Subscribe(string topic);
     }
 }
