@@ -24,6 +24,13 @@
             return msgBus;
         }
     }
+    public class PtpFactory
+    {
+        public static IPtPNet Create()
+        {
+            return new PtPNet();
+        }
+    }
 
     public enum BusType
     {
