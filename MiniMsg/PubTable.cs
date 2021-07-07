@@ -8,7 +8,7 @@ namespace MiniMsg
     /// <summary>
     /// 全局发布列表
     /// </summary>
-    public class PubTable
+    internal class PubTable
     {
         private PubTable() { }
 

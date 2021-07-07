@@ -236,7 +236,11 @@ namespace MiniMsg
                                             }
                                         }
                                         err.NumAll = 0;
-                                       // Console.WriteLine("异常处理节点没有结果了,{0}>>{1}>>", kv.Key, addr.SubAddresses.Count);
+                                        if (LocalNode.IsMsgReturn)
+                                        {
+                                            MsgTopicCount.Instance.Add(new PubRecords() { FaildNum = 1, MsgId = p.MsgId });
+                                        }
+                                        // Console.WriteLine("异常处理节点没有结果了,{0}>>{1}>>", kv.Key, addr.SubAddresses.Count);
                                         continue;
                                     }
                                   //  Console.WriteLine("准备处理的异常全部发送,{0}>>{1}", kv.Key,err.NumAll);
@@ -259,6 +263,8 @@ namespace MiniMsg
                                         err.Address = right;
                                         dicNodeGuid[kv.Key] = err.NodeFlage;//将当前处理正常的地址保存
                                         Console.WriteLine("成功处理异常，" + right);
+                                        if (LocalNode.IsMsgReturn)
+                                        { MsgTopicCount.Instance.Add(new PubRecords() { SucessNum = 1, MsgId = p.MsgId }); }
                                         break;
                                     }
                                     else
@@ -284,25 +290,31 @@ namespace MiniMsg
         /// </summary>
         /// <param name="topic"></param>
         /// <param name="msg"></param>
-        public void Send(string topic, byte[] msg)
+        public ulong Send(string topic, byte[] msg)
         {
          
             //从本地已经订阅的地址查找
             var lst = SubTable.Instance.GetAddress(topic);
-          
+            var  id = Interlocked.Increment(ref msgid);
             if (lst != null && lst.Count > 0)
             {
 
                 //记录发送异常的地址和数据
                 Dictionary<string, byte[]> dic = new Dictionary<string, byte[]>();
+                PubRecords records = new PubRecords();
                 foreach (var p in lst)
                 {
                  
-                    var ret = DataTransfer.Send(topic, msg, p, 0, Interlocked.Increment(ref msgid));
+                    var ret = DataTransfer.Send(topic, msg, p, 0, id);
                     if (ret==null||ret.Length == 0)
                     {
                         //发布失败没有返回
                         dic[p] = msg;
+                        records.FaildNum++;
+                    }
+                    else
+                    {
+                        records.SucessNum++;
                     }
 
                 }
@@ -310,8 +322,14 @@ namespace MiniMsg
                 {
                     //存入异常数据，等待再次处理
                    
-                    errorRecords.Add(new Records() { Record = dic, Topic = topic });
+                    errorRecords.Add(new Records() { Record = dic, Topic = topic, MsgId=id });
+                    MsgTopicCount.Instance.AddTemp(records);
                 }
+                else
+                {
+                    MsgTopicCount.Instance.Add(records);
+                }
+                return id;
             }
             else
             {
@@ -324,7 +342,7 @@ namespace MiniMsg
                     var find = lstPub.Find(X => TopicBroadcast.lstNodeAddress.Contains(X));
                     if (find != null)
                     {
-                        return;
+                        return id;
                     }
                 }
                 SubMgr.Instance.OpenChanel();//初始化，启动数据接收订阅
@@ -347,18 +365,32 @@ namespace MiniMsg
                     {
                         Thread.Sleep(100);//等待100ms取订阅地址
                         //再次检查是否有订阅
+                        PubRecords records = new PubRecords();
                         lst = SubTable.Instance.GetAddress(topic);
                         if (lst != null&&lst.Count>0)
                         {
                             foreach (var p in lst)
                             {
-                                DataTransfer.Send(topic, msg, p);
+                               var  ret=  DataTransfer.Send(topic, msg, p,0,id);
+                                if (ret == null || ret.Length == 0)
+                                {
+                                    records.FaildNum++;
+                                }
+                                else
+                                {
+                                    records.SucessNum++;
+                                }
+                            }
+                            if(LocalNode.IsMsgReturn)
+                            {
+                                MsgTopicCount.Instance.Add(records);
                             }
                             break;
                         }
                     }
                     sub.Release();
                 });
+                return id;
             }
         }
     

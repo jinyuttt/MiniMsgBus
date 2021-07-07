@@ -9,7 +9,7 @@ namespace MiniMsg
     /// <summary>
     /// 订阅节点地址
     /// </summary>
-   public class SubAddress
+    internal class SubAddress
     {
         /// <summary>
         /// 使用地址
@@ -42,7 +42,7 @@ namespace MiniMsg
     /// <summary>
     /// 主题订阅地址
     /// </summary>
-    public class SubAddressLst
+    internal class SubAddressLst
     {
         /// <summary>
         /// 所有节点地址

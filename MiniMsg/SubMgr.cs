@@ -11,7 +11,7 @@ namespace MiniMsg
     /// <summary>
     /// 订阅管理
     /// </summary>
-    public  class SubMgr
+    internal class SubMgr
     {
         /// <summary>
         /// 订阅者

@@ -47,7 +47,16 @@ namespace MiniMsg
         /// </summary>
         public static readonly string GUID = Guid.NewGuid().ToString("N");
 
+        /// <summary>
+        /// 网络信息
+        /// </summary>
+
         public static readonly List<NetWorkInfo> LocalAddressFamily=new List<NetWorkInfo>();
+
+        /// <summary>
+        /// 信息发送记录
+        /// </summary>
+        public static bool IsMsgReturn = false;
        
       
         /// <summary>

@@ -8,7 +8,7 @@ namespace MiniMsg
     /// <summary>
     /// 本地订阅列表
     /// </summary>
-   public class SubTable
+    internal class SubTable
     {
         private SubTable() { }
         private static readonly Lazy<SubTable>  sub = new Lazy<SubTable>(() => new SubTable());

@@ -10,7 +10,7 @@ namespace MiniMsg
     /// <summary>
     /// 进程通信 暂不使用
     /// </summary>
-    public class TopicZmqIpc
+    internal class TopicZmqIpc
     {
         static string ipcfile = "";
         public event Action<string,byte[]> ReceiveTopic;

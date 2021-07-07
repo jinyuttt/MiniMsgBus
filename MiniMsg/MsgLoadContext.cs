@@ -7,7 +7,7 @@ using System.Runtime.Loader;
 
 namespace MiniMsg
 {
-    public class MsgLoadContext : AssemblyLoadContext
+    internal class MsgLoadContext : AssemblyLoadContext
     {
         protected override Assembly Load(AssemblyName assemblyName)
         {

@@ -11,7 +11,7 @@ namespace MiniMsg
     /// <summary>
     /// 暂时不使用
     /// </summary>
-    public class TopicZmqIpcTcp
+    internal class TopicZmqIpcTcp
     {
         public  void Send(string addr)
         {
