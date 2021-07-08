@@ -509,5 +509,48 @@ namespace ConsoleApp1
         {
             Console.WriteLine("主题：{0} ,内容:{1}", arg1, Encoding.UTF8.GetString(arg2));
         }
+
+       static ulong msgid = 0;
+       protected static void exexam()
+        {
+            var bus=  BusFactory.Create(BusType.Ipc);
+              bus.Subscribe("AA");
+            bus.OnCall += Bus_OnCall;
+            bus.Publish("AA", new byte[] { 34 });
+
+            var ptp = PtpFactory.Create();
+            ptp.Address = "127.0.0.1";
+            ptp.Port = 6667;
+            ptp.Start();
+            ptp.Send(new byte[] { 45 });
+
+            var rpc = BusFactory.Create(BusType.tcp);
+            LocalNode.IsMsgReturn = true;//启用消息反馈
+          //  rpc.Subscribe("AA");
+           // rpc.OnCall += Bus_OnCall;
+            msgid= rpc.Publish("AA", new byte[] { 34 });
+            MsgTopicCount.Instance.OnCall += Instance_OnCall;
+
+        }
+
+        private static void Instance_OnCall(PubRecords obj)
+        {
+            if(obj.MsgId==msgid)
+            {
+                if(obj.SucessNum>0)
+                {
+                    //
+                }
+                else
+                {
+                    //失败
+                }
+            }
+        }
+
+        private static void Bus_OnCall(string arg1, byte[] arg2)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

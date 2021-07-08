@@ -7,9 +7,9 @@ namespace MiniMsg
         public event Action<string, byte[]> OnCall;
         MiniMsgTopic msgTopic = new MiniMsgTopic();
         volatile bool IsInit = false;
-        public void Publish(string topic, byte[] bytes)
+        public ulong Publish(string topic, byte[] bytes)
         {
-            msgTopic.Publish(topic, bytes);
+          return  msgTopic.Publish(topic, bytes);
         }
 
         public void Subscribe(string topic)

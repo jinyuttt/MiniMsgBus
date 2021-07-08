@@ -34,8 +34,19 @@
 
     public enum BusType
     {
+       /// <summary>
+       /// 进程内
+       /// </summary>
         Inpoc,
+        
+        /// <summary>
+        /// 进程间
+        /// </summary>
         Ipc,
+
+        /// <summary>
+        /// 网络
+        /// </summary>
         tcp
     }
 }

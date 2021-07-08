@@ -27,10 +27,11 @@ namespace MiniMsg
         /// </summary>
         /// <param name="topic">主题</param>
         /// <param name="msg">数据</param>
-        public void Publish(string topic, byte[] msg)
+        public ulong Publish(string topic, byte[] msg)
         {
           
-            PubMgr.Instance.Send(topic, msg);
+         
+             return   PubMgr.Instance.Send(topic, msg);
           
             //
         }
