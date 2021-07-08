@@ -25,12 +25,12 @@ namespace MiniMsg
         {
           
         }
-        public void AddTemp(PubRecords records)
+        internal void AddTemp(PubRecords records)
         {
             dic[records.MsgId] = records;
         }
 
-        public void Add(PubRecords records)
+        internal void Add(PubRecords records)
         {
             PubRecords tmp = null;
             if (dic.TryRemove(records.MsgId,out tmp))
