@@ -35,11 +35,44 @@
 ## 翻译
 有兴趣的童鞋可以全部翻译成c++程序  
 
-## 下一步工作
-1.封装msgbus，分为进程内部通信（观察者模式）进程间通信（共享内存）,网络通信（订阅发布）  
-2.扩展通信模式，支持一般的订阅发布模型和同步返回模式  
-3.同步返回模型为了以此底层通信实现RPC方式  
-4.全部完成，通信三剑合一   
+## 使用 
+             
+1.订阅发布 
+支持三类通信，进程内（观察者模式），进程间（内存共享），网络通信（订阅发布）   
+			  var bus=  BusFactory.Create(BusType.Ipc);  
+              bus.Subscribe("AA");  
+              bus.OnCall += Bus_OnCall;  
+               bus.Publish("AA", new byte[] { 34 });  
+2.点对点通信  			    
+直接创建tcp通信  
+  var ptp = PtpFactory.Create();  
+            ptp.Address = "127.0.0.1";  
+            ptp.Port = 6667;  
+            ptp.Start();  
+            ptp.Send(new byte[] { 45 });  
+3.订阅发布扩展RPC  
+  var rpc = BusFactory.Create(BusType.tcp);  
+            LocalNode.IsMsgReturn = true;//启用消息反馈  
+          //  rpc.Subscribe("AA");  
+           // rpc.OnCall += Bus_OnCall;  
+            msgid= rpc.Publish("AA", new byte[] { 34 });  
+            MsgTopicCount.Instance.OnCall += Instance_OnCall;  
+ 
+  private static void Instance_OnCall(PubRecords obj)  
+        {
+            if(obj.MsgId==msgid)  
+            {
+                if(obj.SucessNum>0)  
+                {  
+                    //
+                }  
+                else  
+                {  
+                    //失败
+                }  
+            }  
+        }  
+			
 
 ##欢迎测试
 
