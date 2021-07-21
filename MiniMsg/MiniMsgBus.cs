@@ -4,6 +4,9 @@ namespace MiniMsg
 {
     public  interface IMiniMsgBus
     {
+
+        protected const string defaultTopic = "defaultTopicBus";
+
         /// <summary>
         /// 订阅回调
         /// </summary>

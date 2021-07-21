@@ -9,12 +9,20 @@ namespace MiniMsg
         volatile bool IsInit = false;
         public ulong Publish(string topic, byte[] bytes)
         {
-          return  msgTopic.Publish(topic, bytes);
+            if (string.IsNullOrEmpty(topic))
+            {
+                topic = IMiniMsgBus.defaultTopic;
+            }
+            return  msgTopic.Publish(topic, bytes);
         }
 
         public void Subscribe(string topic)
         {
-            if(!IsInit)
+            if (string.IsNullOrEmpty(topic))
+            {
+                topic = IMiniMsgBus.defaultTopic;
+            }
+            if (!IsInit)
             {
                 msgTopic.OnCall += MsgTopic_OnCall;
                 IsInit = true;

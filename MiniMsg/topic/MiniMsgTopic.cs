@@ -19,6 +19,7 @@ namespace MiniMsg
         public void Subscribe(string topic)
         {
          
+
             SubMgr.Instance.SendSub(topic, this);
         }
 
@@ -29,9 +30,9 @@ namespace MiniMsg
         /// <param name="msg">数据</param>
         public ulong Publish(string topic, byte[] msg)
         {
-          
-         
-             return   PubMgr.Instance.Send(topic, msg);
+
+           
+            return   PubMgr.Instance.Send(topic, msg);
           
             //
         }

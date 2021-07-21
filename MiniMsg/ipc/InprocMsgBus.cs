@@ -5,10 +5,14 @@ namespace MiniMsg
     public class InprocMsgBus : IMiniMsgBus
     {
         public event Action<string, byte[]> OnCall;
-        private ConcurrentDictionary<string, ISubject> map = new ConcurrentDictionary<string, ISubject>();
+        private readonly ConcurrentDictionary<string, ISubject> map = new ConcurrentDictionary<string, ISubject>();
 
-        public void Publish(string topic, byte[] bytes)
+        public ulong Publish(string topic, byte[] bytes)
         {
+            if(string.IsNullOrEmpty(topic))
+            {
+                topic = IMiniMsgBus.defaultTopic;
+            }
             ISubject msgSubject = new MsgSubject();
             if (!map.TryGetValue(topic, out msgSubject))
             {
@@ -18,10 +22,15 @@ namespace MiniMsg
             }
             msgSubject.SubjectState = bytes;
             msgSubject.Notify();
+            return 0;
         }
 
         public void Subscribe(string topic)
         {
+            if (string.IsNullOrEmpty(topic))
+            {
+                topic = IMiniMsgBus.defaultTopic;
+            }
             ISubject subject = null;
             if (map.TryGetValue(topic,out subject))
             {
@@ -31,5 +40,7 @@ namespace MiniMsg
             }
            
         }
+
+       
     }
 }

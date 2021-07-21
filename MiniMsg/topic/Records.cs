@@ -4,7 +4,7 @@ namespace MiniMsg
 {
 
     /// <summary>
-    /// 记录发送的数据
+    /// 记录发送的数据,处理异常
     /// </summary>
     internal class Records
     {

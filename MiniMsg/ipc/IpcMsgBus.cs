@@ -10,14 +10,23 @@ namespace MiniMsg
        volatile bool isInit = false;
         private ConcurrentDictionary<string, string> map = new ConcurrentDictionary<string, string>();
 
-        public void Publish(string topic, byte[] bytes)
+        public ulong Publish(string topic, byte[] bytes)
         {
+            if (string.IsNullOrEmpty(topic))
+            {
+                topic = IMiniMsgBus.defaultTopic;
+            }
             topicIpc.IpcSend(topic, bytes);
+            return 0;
         }
 
         public void Subscribe(string topic)
         {
-            if(!isInit)
+            if (string.IsNullOrEmpty(topic))
+            {
+                topic = IMiniMsgBus.defaultTopic;
+            }
+            if (!isInit)
             {
                 topicIpc.ReceiveTopic += TopicIpc_ReceiveTopic;
                 isInit = true;
